@@ -1,0 +1,334 @@
+---
+author: "Sam Gifford"
+date: '2024-10-07'
+output:
+  pdf_document:
+    keep_tex: yes
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{css, echo=FALSE}
+h1, h2, h3 {
+  text-align: center;
+}
+
+h4, h5 {
+  font-weight: bold
+}
+```
+
+
+## \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \ \ \ \ \ \ \ \ \ \ University of Illinois at Chicago
+
+## \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ **Econ 300: Econometrics**
+
+### \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  Fall 2024 - CRN 42841 - 3 hours, on Campus
+
+### Class Location & Time: 
+
+* **Monday, Wednesday 8:00-9:15 AM, Burnham Hall 209**
+
+
+ | | | 
+---- | ---- | ---- | ---- | ----
+Instructor: | Sam Gifford | TA: | Penny Phan
+email: | sgiffor2\@uic.edu | | tphan31\@uic.edu
+Office: | UH 819 |  | 
+Student Drop in Office Hours: | 9:30-11:00 AM M/W and by appointment | | 
+
+#### I Overview
+
+##### Objectives
+
+This course is designed to introduce you to the fundamentals of econometric analysis and help develop necessary skills for independent research. The primary focus of this class is gaining an understanding of how empirical work is conducted and examples will focus on real-world applications in a variety of applied settings. Although you will not be expected to produce an original research work in this class, you will be expected to master essential econometric techniques that should serve as a base for any future research or analytics oriented courses. By the end of this class, you should be able to:
+
+* Understand how regression analysis is performed and interpret regression results
+* Conduct and interpret tests for statistical significance
+* Understand the difference between correlation and causation
+* Employ econometric strategies such as RD & Diff-in-diff to perform causal analysis
+* Develop basic statistical coding skills (R or Stata)
+
+##### Prerequisites
+
+* ECON 120 or ECON 121
+* ECON 270 or IDS 270 or STAT 101
+
+#### II Resources
+
+##### Textbook
+
+Bailey, Michael A. Real *Econometrics: The Right Tools to Answer Important Questions.*
+2nd Edition. Oxford University Press, 2019.
+
+##### Course Website
+
+Blackboard (uic.blackboard.com) will be used as the primary course website and all course content will be shared and made available in a timely manner. Homework will be turned in via Blackboard and class announcements will be made on blackboard with a corresponding email being sent out – please make sure to keep a track of all announcements and updates. Please notify me immediately if you are unable to access Blackboard since this is essential for the course.
+
+##### Software
+
+While econometrics is a theoretical subject, the focus of this class will be on practical uses. In order to apply the concepts we learn we will use statistical software with actual data to perform some basic analyses. You are free to use whatever language you prefer, though instruction will be provided in R. While assignments will heavily use these, no programming knowledge is expected on exams, and no prior programming experience is expected for the course.
+
+R is a free to use, open-source statistical programming language. It is a dynamic, weakly-typed, functional programming language based loosely on LISP that also has object-oriented paradigms and strong metaprogramming features built into it. Importantly for our purposes, it has built-in language support for many statistical procedures and a very robust package system that supports a wide variety of econometric techniques and data visualization.
+
+R is normally used alongside its official IDE Rstudio. You can download this for free from r-studio.com for Windows, Mac, or Linux. If using a Chromebook you will need to use the terminal to install the Debian version of rstudio-server which will run in chrome. Additional setup instructions and programming guides are listed on the course website, and I'm also able to assist with setup during office hours, and anticipate that some portion of the first programming lab will be dedicated to troubleshooting.
+
+Stata is another programming language frequently used for econometrics, though is almost exclusively used in academia as it is substantially less powerful than R or Python, particularly for common business use cases like predictive analytics and machine learning. Stata is not free, but can be accessed by students virtually from the computer lab if desired. Instructions for accessing and using Stata are also provided on Blackboard.
+
+Four programming labs will be provided to help you gain familiarity with programming. You will be expected to have your laptop in class these days so that you can follow along with instruction. You are not expected to have any prior programming experience for this class, and we will only learn the features necessary to implement basic econometric analysis. If you have desire to learn more I have advanced R programming guides available on blackboard, and will gladly help during office hours as well. 
+
+In addition, I have provided you all with access to data camp for the semester which includes short courses on R and statistical inference. Instructions for accessing this are available on Blackboard.
+
+#### III Evaluation
+
+##### Exams
+
+There will be three non-cumulative exams during the semester. Each exam is worth 100 points and will consist primarily of free-response questions; there will be no programming exercises on the exams. Exams will be held in-person. Please refer to the tentative schedule at the end for exam dates.
+
+##### Biweekly Quizzes
+
+Short, approximately 15 minute quizzes will be given every other week in class. These quizzes cannot be made up, but the lowest score will be dropped at the end of the semester.
+
+##### Homework and Problem Sets
+
+Each week there will be a short homework assignment posted on blackboard covering basic material from the class. These assignments are intended to keep you engaged throughout the semester while giving access to easier questions that rely more on recall than critical thinking. Homework assignments will be due before class on Wednesday (by 8:00 AM). The two lowest grades throughout the semester will be dropped. 
+
+Additionally, six larger problem sets will be assigned during the semester, roughly one every 3 weeks. These problem sets will focus more on developing your intuition for the econometric models we learn and to assess your critical thinking skills. Some will be essay style questions asking to evaluate a research paper or research question, while others will require you to use a programming language to perform a statistical analysis. Answers are to be uploaded via blackboard as a single file (ideally pdf or similar). Problem sets will be due Friday by 11:59 PM. Please see the calendar for due dates; any changes made will be posted as an announcement in Blackboard. These assignments will take some time to complete, so do not put them off until the last minute. Problem sets may very in length and number of points, but will average 60 points. The lowest 60 points worth of problem sets will be dropped at the end of the semester.
+
+You are allowed to collaborate with other students on problem sets, and are encouraged to work with other students when writing code, but any free response answers must submit your own, unique answer. Copying answers from another student or an online source without attribution will result in a zero for the assignment and potential disciplinary action per the university code of conduct. Additionally, any AI-generated answers will be given a score of zero as explained in more detail in the generative-AI section of the syllabus.
+
+##### Class Participation
+
+Econometrics is considered by most students to be the hardest undergraduate economics course. Despite any past success you may have had in economics courses, almost every student in this class will find it difficult to succeed without attending class and actively paying attention. Since I do not like enforcing mandatory attendance, I will instead have a participation grade that is entirely extra credit as outlined below. 
+
+Attendance will be recorded and short, graded review questions or quizzes will be frequently provided via iClickers in order to assess overall class understanding. Due to the limitations of iClickers and the analytic nature of the course, participation in the class outside of iclicker responses is also required in order to engage with the material. For more involved questions I may ask you to work in small groups to come up with answers to a question. Each day of class will be worth the same number of points regardless of the amount of participation required.
+
+Your participation grade will be based on a combination of attendance and performance on graded questions. Due to the extra credit nature of the participation grade, no make-up points will be allowed for missed attendance. With that said, more participation points will be available than the maximum number of points that can be awarded, which will allow for you to miss some days or some questions and still get the maximum number of participation points. The system is intended to award full points to students who put effort into the class, but not for students who are routinely absent or who attend every class but do not pay attention.
+
+A smartphone or laptop can be used to answer iClicker polls which can be registered using the link https://join.iclicker.com/SESB which will also be posted on blackboard.
+
+##### Grading Summary
+
+ | | | 
+ ---- | ---- | ---- | ---- |
+Assessment | Score | Total Score | Percentage
+3 Exams | 100 points each | 300 points | 30\%
+Problem Sets | 60 points (avg)| 300 points | 30\%
+Biweekly Quizzes | 25 points each | 150 points | 15\%
+Weekly Homework | 25 points each | 250 points | 25\%
+**Total** | - | **1000 points** | **100\%**
+Class Participation | ~2 points/day | 50 points | 5\%
+Total (w/ extra credit) | | 1050 points| 105\%
+
+##### Grading Scale
+
+* A: 900+ points
+* B: 800-899 points
+* C: 700-788 points
+* D: 600-699 points
+* F: <600 points
+
+#### IV Course Policies
+
+##### Student Drop-in Office Hours
+
+I will be available to answer questions after class from 9:30-11:00. If these times do not work for you, you may also feel free to schedule another time to discuss any class related materials. My UIC calendar is publicly visible and should be up to date so that you can check which times work for me ahead of time. On most weeks I will not be available Tuesday or Thursday before 10:00 AM, Wednesday from noon to 1:00 PM, or Friday from 11:00 AM-12:30 PM or after 5:00 PM. 
+
+##### Late Work
+
+In general late work or makeup work is not accepted after the answer key is posted, which will be shortly after the due date to facilitate review. The lowest grade in several categories is dropped per the grading criteria above to help with this, as described in their respective sections. Problem sets may be turned in late for half credit up until the answer key is posted, which will be 1 week after the initial due date unless otherwise stated. If a conflict with an exam exists you must arrange an alternative date prior to the exam. Missing an exam will result in a zero unless there is a documented excuse of acceptable nature.
+
+##### Regrading Policy
+
+Any issues with grading that require a regrade must be submitted within 1 week of the assignment being returned; no assignments will be regraded after this period. Please send regrade emails directly to me and I will forward them to the teaching assistant when relevant.
+
+##### Academic Integrity
+
+Academic dishonesty (cheating) in this course is unacceptable. Any student who is found to have engaged in academically dishonest behaviors in this course will face the following consequences, and may incur more severe penalties depending on the nature of the event:
+
+* Zero score on the assessment where cheating occurred
+* Filing of an Academic Integrity report
+* Lowering of the final course grade by one full letter grade
+
+For a complete list of UIC’s Academic Integrity standards, please reference section IV.A. of the Student Disciplinary Policy.
+
+##### Generative AI Policy
+
+AI generated answers will not be graded and will receive a score of 0 for the specific portion of the answer for which AI was used. I put a great deal of effort to provide meaningful feedback on assignments, and answers pasted from tools like ChatGPT render this feedback meaningless. For reference, ChatGPT does not do well with math questions, and is incorrect more often than it is correct for econometrics questions. You may find ChatGPT to be a useful tool to help you write code or to think through what you may have missed when answering a question, but I ask that you word answers in your own way (and fix the false statements it provides!). AI output is easily detected, even without the use of an online detector due to its formulaic structure and high degree of fluff, which creates low-quality answers.
+
+##### Use of Electronics
+
+Smart phones or laptops may be required for portions of the course, but please refrain from any disruptive behavior on such devices. These devices will not be allowed during exams
+
+##### Communication
+
+You are welcome to email me throughout the semester for course-related questions or concerns. In order to keep everything organized and professional please observe the following communication practices:
+
+* All emails must be sent from your UIC email account.
+* Begin all emails with the subject line “ECON 300:" followed by some additional subject information. Failure to do so may result in your email being missed.
+* Please provide enough context in your email for your question to be addressed without further follow-up
+* Emails will be answered within 1 business day, and often early in the morning on the following day due to my sleep schedule. As such please be proactive when sending out emails so that you do not need an immediate response.
+* While I am happy to answer any questions you have, please show that you have put in some effort and be specific about your questions.
+
+##### Additional Resources
+
+* ECON Club tutoring provides free tutoring to students every semester. Please check their website for more information on the Fall semester schedule.
+* UIC Counseling Center provides resources to students who feel overwhelmed and/or are dealing with stress and anxiety. Please do not hesitate to reach out to them.
+
+##### Disability Accommodation
+
+Students with disabilities are welcome to request accommodations in completing the course. To request accommodations, please contact the Disability Resource Center (DRC). They will work with you to determine the necessary accommodations and provide you with an official Letter of Accommodation, which you can then send to me. If you already have a Letter of Accommodation, please email it to me at your earliest convenience.
+
+##### Religious Observances
+
+If you wish to observe a religious holiday, please notify me by the tenth day of the semester of the date when you will be absent unless the religious holiday is observed on or before the tenth day of the semester. In such cases, please notify me at least five days in advance of the date when you will be absent. I will make every reasonable effort to honor the request, not penalize you for missing the class, and if an examination or project is due during the absence, schedule a make-up exam for you.
+
+##### Pregnancy Accommodations
+
+Following campus policy, pregnant students have rights under Title IX. To request pregnancy-related accommodations, contact the Title IX Coordinator at titleix@uic.edu or 312-996-8670.
+
+##### Community Agreement/Classroom Conduct Policy
+
+* Be present by turning off cell phones and removing yourself from other distractions.
+* Be respectful of the learning space and community. For example, no side conversations or
+unnecessary disruptions.
+* Use preferred names and gender pronouns.
+* Assume goodwill in all interactions, even in disagreement.
+* Facilitate dialogue and value the free and safe exchange of ideas.
+* Try not to make assumptions, have an open mind, seek to understand, and not judge.
+* Approach discussion, challenges, and different perspectives as an opportunity to “think out
+loud,” learn something new, and understand the concepts or experiences that guide other
+people’s thinking.
+* Debate the concepts, not the person.
+* Be gracious and open to change when your ideas, arguments, or positions do not work or
+are proven wrong.
+* Be willing to work together and share helpful study strategies.
+* Be mindful of one another’s privacy, and do not invite outsiders into our classroom.
+
+\newpage
+
+#### IV Tentative Schedule
+
+```{r, echo=FALSE}
+library(data.table)
+dates <- as.Date("2023-08-26") + sort(c((0:15)*7,(0:15)*7+2))
+dates <- paste (month.name[month(dates)],as.numeric(format(dates,"%d")))
+week <- as.vector(t(sapply(list("Week",""),function(x)if(x!=""){paste0(x," ",1:16)}else{rep("",16)})))
+topics <- c(
+  "Introduction and Math/Stats Review",
+  "Math/Statistics Review",
+  "Labor Day - No Class",
+  "Introduction to Causal Inference",
+  "Programming Lab 1",
+  "Math/Stats Review",
+  "Bivariate OLS",
+  "Bivariate OLS",
+  "Bivariate OLS",
+  "Bivariate OLS",
+  "Review/Hypothesis Testing",
+  "**Exam 1**",
+  "Hypothesis Testing",
+  "Hypothesis Testing",
+  "Multivariate OLS",
+  "Multivariate OLS",
+  "Dummy Variables",
+  "Dummy Variables",
+  "Model Transformations",
+  "Programming Lab 4",
+  "Randomization and Potential Outcomes",
+  "Randomization and Potential Outcomes",
+  "**Exam 2**",
+  "Differences in Differences",
+  "Differences in Differences",
+  "Differences in Differences",
+  "Regression Discontinuity",
+  "Student Wellness Day - No Class",
+  "Regression Discontinuity",
+  "Review/Buffer",
+  "No Class (Final Exam Week)",
+  "**Final Exam**"
+)
+chapter <- c(
+  "",
+  "",
+  "Ch 1.1-1.2",
+  "",
+  "",
+  "Ch 3",
+  "",
+  "Ch 3",
+  "Ch 3",
+  "Ch 4",
+  "Ch 4",
+  "",
+  "Ch 5",
+  "Ch 5",
+  "",
+  "Ch 5",
+  "Ch 6",
+  "Ch 6 & Ch 12.1",
+  "Ch 7",
+  "",
+  "Ch 1.3 & Ch 10",
+  "Ch 1.3 & Ch 10",
+  "",
+  "Ch 8",
+  "Ch 8",
+  "",
+  "Ch 8",
+  "Ch 12",
+  "Ch 12",
+  "Ch 12",
+  "",
+  ""
+)
+pset <- c(
+  "",
+  "",
+  "",
+  "",
+  "",
+  "HW1",
+  "",
+  "HW2, Quiz 1, **Problem Set 1** (Due Friday Midnight)",
+  "",
+  "HW3, Quiz 2",
+  "",
+  "",
+  "",
+  "HW4",
+  "Quiz 3",
+  "HW5, **Problem Set 2** (Due Friday Midnight)",
+  "",
+  "HW6, Quiz 4, **Problem Set 3** (Due Friday Midnight)",
+  "",
+  "HW7, Quiz 5",
+  "",
+  "HW8, Quiz 6, **Problem Set 4** (Due Friday Mightnight)",
+  "",
+  "HW9, Quiz 7",
+  "",
+  "HW10, **Problem Set 5** (Due Friday Midnight)",
+  "",
+  "HW11",
+  "",
+  "HW12, **Problem Set 6** (Due Friday Midnight)",
+  "",
+  ""
+)
+dt <- data.table(Week=week,Date=dates,Topic=topics,Chapter=chapter,`Homework/Quizzes`=pset)
+knitr::kable(dt)
+```
+
+##### Other Important Dates
+
+* Friday September 6th: Last day to drop with no W
+* Friday November 1st: Last day to drop course and receive W
+
+##### Disclaimer
+
+This syllabus is intended to give the student guidance on what may be covered during the semester and will be followed as closely as possible. However, as the instructor, I reserve the right to modify, supplement, and make changes as course needs arise. I will communicate such changes in advance through in-class announcements and in writing via Blackboard Announcements.
