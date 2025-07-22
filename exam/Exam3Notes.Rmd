@@ -1,0 +1,43 @@
+---
+title: "Consolidated Notes Final Exam Econ 300"
+output: 
+  pdf_document:
+  toc: true
+  theme: united
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+The following is intended to cover major topics you should understand for exam 3
+
+## Causal Inference / Potential Outcomes Framework
+
+You should be able to
+
+* Understand the definition of Rubins causality
+* Be able to distinguish between the different types of treatment effects
+
+## Difference-in-Differences
+
+* Write the regression equation for a DID model
+* Be able to interpret each of the coefficients in a DID regression
+* Understand what does and does not bias a DID design
+* Know how to test for the identification assumption for DID
+* Calculate DID coefficients when given a table of values
+* Understand the benefits DID provides over simple bivariate regression
+  
+## Regression Discontinuity
+
+* Write the regression equation for an RD model
+* Be able to interpret each of the coefficients in an RD model
+* Understand what does and does not bias an RD design
+* Understand ways in which the base RD model can be extended and why
+* Understand the benefits RD provides over simple bivariate regression
+* Understand what an RD estimate measures
+
+## Residual Knowledge
+
+* Understand the basics of bivariate OLS regression, including bias and what $\hat\beta_1$ represents

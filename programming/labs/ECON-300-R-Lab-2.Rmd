@@ -1,0 +1,267 @@
+---
+title: "ECON 300 R Lab 2"
+author: "T_Stoeger"
+date: '2023-06-20'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Learning Objectives
+
+In the previous lab, we familiarized ourselves with the basics of R and RStudio. We ran simple codes, learned how to import data sets, and laid the groundwork for more advanced analysis. In this lab, we will build on that foundation by learning an important tool in econometrics: regressions.  
+
+After completing this lab, you should be familiar with:\
+1. Running simple, bivariate regressions\
+2. Finding confidence intervals, fitted values, and residuals\
+3. Dealing with some of the challenges of OLS\
+4. Running multivariate regressions\
+5. The Frisch-Waugh-Lovell (FWL) theorem
+
+## Bivariate Regressions
+
+For this lab, we will be using the same **card_95_sample** data set that we used in the previous lab. Before we import it into our workspace, let's get our file set up. If you haven't already, create and save a new R Script file. Be sure to save the file in your designated folder for programming assignments that you created for this course.  
+
+It is common when writing R Scripts to call packages at the beginning of the file. Let's do that now. For this lab, we will need to call the **dplyr** package.  
+
+```{r biv1, eval=TRUE}
+library(dplyr)
+```
+
+We should also ensure that our working directory is set correctly. We can do this by going to the top left of RStudio, clicking Session -> Set Working Directory -> Choose Directory or by running the following code:
+
+```{r biv2, eval=FALSE}
+setwd("Your file path here")
+```
+```{r biv3, include=FALSE,eval=FALSE}
+setwd("C:/Users/tstoe/OneDrive/Grad School/3 - Summer 2023/TA - ECON 300 - Econometrics/RLAB 2")
+```
+
+We can now import our data, and use the **summary()** command to see what our data looks like.
+
+```{r biv4}
+data <- read.csv("card_95_sample.csv", header = TRUE)
+
+# The read.csv() command has several arguments, which you can learn about by running
+# ?read.csv
+# I've added the argument header = T, which is enabled by default, but if you are having
+# issues, you can add this to your code as well.
+
+summary(data)
+```
+
+To run a regression, we use the **lm()** command. The **lm()** command has several different arguments, which we can learn about by reading the documentation.
+
+```{r biv5, eval=FALSE}
+?lm
+```
+
+The documentation tells us that we need a formula for this code to run, as well as a data frame.
+
+```{r biv6}
+reg1 <- lm(ed76 ~ momed, data = data)
+```
+
+We can view the results of this regression using the **summary()** command.
+
+```{r biv7}
+summary(reg1)
+```
+
+Let's walk through the different parts of this output. At the top, we have the Call section, which details the formula we specified in the **lm()** command. In the Residuals section, we have some basic distribution statistics about the residuals of our regression. In the Coefficient section, we can look at the coefficient on each variable, as well as the standard errors, and t- and p-values. Off to the side of each coefficient are significance codes, which indicate if and to what degree each variable is significantly different from zero. Below the Coefficients section, we have some information available about the residual standard error, the R-squared values, and the F-statistic.  
+
+When we run our regression, we are not automatically given confidence intervals, but we can easily compute them using the **confint()** command.
+
+```{r biv8}
+confint(reg1, level = 0.95)
+```
+
+So, we can say with 95% confidence that the coefficient on *momed* lies between 0.369 and 0.423. If we repeat sample estimation over and over and create a 95% confidence interval for each sample, we expect that 95% of the time the true population parameter will fall within those intervals.
+
+Say that we wanted to find the fitted values of the regression. Remember, fitted values are the predicted y-hats that are generated from our independent variables and corresponding coefficients. We can see the fitted values by selecting the **fitted.values** element of our regression object.
+
+```{r biv9, eval=FALSE}
+reg1$fitted.values
+# Note the usage of the '$' symbol again
+```
+
+We can also find our residuals in a similar fashion.
+
+```{r biv10, eval=FALSE}
+reg1$residuals
+```
+
+Both of these commands will produce a vector of the same length as the number of observations in the regression.
+
+## Multivariate Regressions and the FWL Theorem
+
+Regressions can contain more than two variables. Including more variables in an regression is a natural extension of the simple bivariate regressions we ran above. To run a multivariate regression, we can add more variables to our regression using the '+' symbol. Let's look at one of the bivariate regressions that we ran earlier.
+
+```{r mult1}
+reg2 <- lm(wage76 ~ ed76, data = data)
+summary(reg2)
+```
+
+Obviously, there are other factors that influence a person's wage. Perhaps we think that age also influences someones wages. We can add this variable to our regression using a '+' symbol.
+
+```{r mult2}
+reg3 <- lm(wage76 ~ ed76 + age76, data = data)
+summary(reg3)
+```
+
+We can compare this regression to the bivariate one we just ran. As you can see, our intercept changes (remember the interpretation of the intercept!). The coefficient on *ed76* does not change much, and none of our variables become insignificant.  
+
+We can look at how the R-squared value changes as well. The basic interpretation of the R-squared value is it's a measure of goodness-of-fit. A higher R-squared means the independent variables better account for our dependent variable. For our bivariate regression, the adjusted R-squared is 0.089, and for our multivariate regression, the adjusted R-squared is 0.179. So, adding the *age76* variable better explains the variation in wages versus our previous model. It does not imply causality!  
+
+It is important to note the goal in econometrics is not to get a high R-squared value. Nevertheless, it can be a good starting point when evaluating a model.
+
+### The FWL Theorem
+
+During lecture, you've covered the FWL theorem. We will now apply this theorem and compare our results to those of **reg3**.
+
+We can estimate our multivariate regression using the FWL theorem by applying the following algorithm:  
+
+1. Regress Y on X~1~, obtain residuals\
+2. Regress X~2~ on X~1~, obtain residuals\
+3. Regress residuals from 1 on residuals from 2\
+
+Before we get started, we will subset our data with the **select()** and **filter()** commands to remove missing data. This will prevent errors when running our final regression.
+
+```{r mult3}
+data3 <- data %>% 
+  select(wage76, ed76, age76) %>% 
+  na.omit()
+
+# To test and see if we are good, use the summary() command
+
+summary(data3)
+
+# No NAs, we can now proceed.
+```
+
+We can now begin to apply the FWL theorem.
+
+```{r mult4}
+# 1. Regress Y on X_1, obtain residuals
+fwl1 <- lm(wage76 ~ ed76, data = data3)
+fwl1.resid <- fwl1$residuals
+
+# 2. Regress X_2 on X_1, obtain residuals
+fwl2 <- lm(age76 ~ ed76, data = data3)
+fwl2.resid <- fwl2$residuals
+
+# 3. Regress residuals from 1 on residuals from 2
+fwl3 <- lm(fwl1.resid ~ fwl2.resid)
+summary(fwl3)
+```
+
+As you can see, the coefficient on *fwl2.resid* is the same as the coefficient on *age76* in **reg3**. If we wanted find the coefficient on *ed76*, we would switch our X variables.
+
+```{r mult5}
+# 1. Regress Y on X_2, obtain residuals
+fwl1 <- lm(wage76 ~ age76, data = data3)
+fwl1.resid <- fwl1$residuals
+
+# 2. Regress X_1 on X_2, obtain residuals
+fwl2 <- lm(ed76 ~ age76, data = data3)
+fwl2.resid <- fwl2$residuals
+
+# 3. Regress residuals from 1 on residuals from 2
+fwl3 <- lm(fwl1.resid ~ fwl2.resid)
+summary(fwl3)
+```
+
+Again, the result is that the coefficient on *fwl2.resid* is the same as the coefficient on *ed76* in **reg3**.
+
+## Challenges of OLS
+
+### Multicollinearity
+
+What happens if you try to run a regression that contains a variable that is a linear transformation of another variable? Let us create a new variable and try.
+
+```{r chal1}
+data$highered <- data$ed76 - 12
+```
+
+Here we have created a new variable called *highered*, which captures years of schooling beyond high school. Now we will run it in a regression alongside our original *ed76* variable.
+
+```{r chal2}
+reg4 <- lm(wage76 ~ ed76 + highered, data = data)
+summary(reg4)
+```
+
+Notice the Coefficients section of the regression summary. Firstly, we have a message "1 not defined because of singularities." Additionally, the *highered* row is filled with NAs. R automatically recognizes that the *highered* variable is a linear transformation of the *ed76* variable and excludes it from the regression.  The regression of wage on education or the regression of wage on higher education would yield the same coefficient, since the same source of variation is being used.  
+
+It should be noted that the example above is an extreme case where perfect multicollinearity is observed. A more realistic (and more dangerous) scenario involves having just high multicollinearity, since R will not automatically drop variables in this case. If this is the case, standard errors will be larger than they would be otherwise, which leads larger confidence intervals.  
+
+If we look at the bottom portion of our regression results, we can see that we have "596 observations deleted due to missingness." Why is this the case? If we summarize our regression variables:
+
+```{r chal3}
+data %>% 
+  select(ed76, wage76) %>% 
+  summary()
+
+# Here we are using the select() command in the dplyr package to subset our data
+```
+
+We can see that *wage76* has 596 NAs, or missing values. So, R automatically excludes them from the regression.
+
+### Heteroskedasticity
+
+Suppose you believe your data is heteroskedastic (it has non-constant variance). If we run a normal OLS regression, the standard errors we compute for our coefficients might be off, which may influence significance. In these situations, we can run a robust regression that corrects for this heteroskedasticity. To do this, we need two additional packages, the **lmtest** package and the **sandwich** package.
+
+```{r chal4, eval=FALSE}
+install.packages("lmtest")
+install.packages("sandwich")
+```
+
+Now we will use the **coeftest()** command and the **vcovHC()** command.  Let's use our *data3* data set, which, as you will remember, has all the missing values removed.
+
+```{r chal5}
+library(lmtest)
+library(sandwich)
+
+# Make sure you call these libraries at the top of your file
+
+reg5 <- lm(wage76 ~ ed76, data = data3)
+summary(reg5)
+
+coeftest(reg5, vcov = vcovHC(reg5, type = 'HC0'))
+```
+
+If we compare our robust and non-robust results, we can see the coefficients didn't change at all. However, our standard errors did change, although not enough to make any significant difference. So, there may be some heteroskedasticity in the model. We can verify this by plotting the residuals.
+
+```{r chal6}
+plot(data3$ed76, reg5$residuals)
+```
+
+### Outliers
+
+When running regressions, you may encounter outliers in your data. Outliers are extreme values above or below the distribution of your data. Let's look at our *ed76* variable.
+
+```{r chal7}
+summary(data$ed76)
+table(data$ed76)
+hist(data$ed76, breaks = 18, xlim = c(0, 20))
+```
+
+As we can see, most of our data is concentrated around 12 years of education (a high school diploma). However, there are some individuals with less than 5 years of schooling. This means that they haven't even completed an elementary school education. This is highly unusual and we can treat them as outliers. Perhaps we want to run a regression excluding these people in order to see the relationship of wages and education for a more average person.
+
+```{r chal8}
+reg6 <- lm(wage76 ~ ed76, data = data)
+summary(reg6)
+
+# Here is regression with no restrictions on years of schooling
+
+data2 <- data %>% 
+  filter(ed76 > 5)
+
+reg7 <- lm(wage76 ~ ed76, data = data2)
+summary(reg7)
+```
+
+Here we use pipes and the **filter()** command to create a new data frame that only contains those observations whose education is greater than 5 years of schooling. If we look at the regression results, the coefficients are not much different. Since the people with less than 5 years of education made up only a small fraction of our data set, this seems reasonable.  
+
+Note that if you are restricting your sample in a regression, it is generally a good idea to report your results from an unrestricted sample as well.

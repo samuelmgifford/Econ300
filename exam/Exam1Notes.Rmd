@@ -1,0 +1,51 @@
+---
+title: "Consolidated Notes Exam 1 Econ 300"
+author: "Sam Gifford"
+date: "2024-09-30"
+output: 
+  pdf_document:
+  toc: true
+  theme: united
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+The following is intended to cover major topics you should understand for exam 1
+
+## Stats Review
+
+You should be able to
+
+* Interpret the mean and standard deviation in words and graphically
+* Understand the central limit theorem and under what conditions it holds
+* Interpret covariance and correlation both in words and graphically
+* Interpret the intercept and slope of a linear equation
+* define/differentiate between a dependent and independent variable
+
+## Bivariate OLS
+
+You should be able to
+
+* Write the regression equation / estimating equation / "core model" for a bivariate regression
+* Interpret the error term and what is included in it
+* Interpret the slope and intercept within the context of a model
+* Calculate $\hat y, \hat\varepsilon$ given model parameters
+* Understand the process of Ordinary Least Squares (OLS) conceptually and why we use squared errors instead of errors
+* Understand the difference between $\beta$ and $\hat\beta$ and why they can differ from each other
+* Define bias and give the condition required for estimates to be unbiased (both the definition and the intuition)
+* Understand the sampling distribution of $\hat\beta_1$ and its implications
+  * Know under what conditions we will have a precise (low variance) estimation of $\hat\beta_1$
+  * Know the assumptions behind calculating standard errors for $\hat\beta_1$
+
+## Important Equations:
+
+* $var(x)=E[(x-\mu)^2] = (x_1-\bar x)^2 + (x_2-\bar x)^2 + ... + (x_n-\bar x)^2$ : variance formula
+* $y_i=\beta_0+\beta_1 x_i + \varepsilon_i$ : "The core model"
+  * $y_i=\hat\beta_0 + \hat\beta_1 x_i + \hat\varepsilon_i$ : What we estimate using OLS
+  * $\hat y_i = \hat\beta_0 + \hat\beta_1 x_i$ : How we predict y
+* $\hat\beta_1=cor(x,y)\frac{\sigma_y}{\sigma_x}$ : How we calculate $\hat\beta_1$
+* $E[\hat\beta_1]=\beta_1 + cor(x,\varepsilon)\frac{\sigma_\epsilon}{\sigma_x}$ : How we calculate bias
+* $var(\hat\beta)=\frac{\hat\sigma^2}{n\sigma^2_x}$ : For calculating sampling distribution

@@ -1,0 +1,51 @@
+---
+title: "Topic List Exam 2 Econ 300"
+author: "Sam Gifford"
+date: "2024-11-06"
+output: 
+  pdf_document:
+  toc: true
+  theme: united
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+The following is intended to cover major topics you should understand for exam 2
+
+## Hypothesis Testing
+
+You should be able to
+
+* Set up a hypothesis test and determine whether a coefficient is statistically significant from a p value
+* Interpret the meaning of statistical significance
+  * Understand the limitations of statistical significance
+* Calculate a confidence interval
+* Obtain coefficient estimates, standard errors, and p values from R output
+
+## Multivariate OLS
+
+You should be able to
+
+* Write the regression equation / estimating equation for a multivariate regression
+* Interpret the error term and what is included in it
+  * And how this differs in a multivariate regression
+* Interpret the intercept and slopes within the context of a multivariate model
+  * Including for dummy variables, logarithms, and interaction terms
+* Calculate $\hat y, \hat\varepsilon$ given model parameters
+* Calculate slope coefficients in an interacted dummy variable model
+* Define bias and give the condition required for estimates to be unbiased (both the definition and the intuition)
+  * Understand whether a given scenario would cause bias given a set of controls
+  * Determine whether a scenario will cause upward or downward bias
+* Understand why we use multivariate OLS and in what cases it is/is not appropriate
+  * Understand when multivariate OLS will produce an unbiased result
+
+## Important Equations:
+
+* $CI_\alpha = \hat\beta_1 \pm z_\alpha se(\hat\beta_1)$ Computing Confidence Intervals
+* Definition of unbiasedness: $E[\hat\beta_1]=\beta_1$ 
+* $y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_n z_{ni}$ Multivariate "core model"
+* $E[\hat\beta_1]=\beta_1 + cor(x,\varepsilon)\frac{\sigma_\epsilon}{\sigma_x}$. Bias formula for bivariate OLS
+* $var(\hat\beta_1)=\frac{\hat\sigma^2}{n\sigma^2_x}$ Sampling variance formula

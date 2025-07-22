@@ -1,0 +1,274 @@
+---
+title: "ECON 300 R Lab 3"
+author: "T_Stoeger"
+date: "2023-07-15"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(haven)
+```
+
+## Learning Objectives
+
+In our last lab, we introduced regressions, a powerful tool when performing economic analyses. In today's lab, we will further expand on regressions by adding more complex variable types.
+
+After completing this lab, you should be familiar with:\
+1. Recognizing continuous, discrete, binary, and categorical variables\
+2. Running and interpreting regressions with binary variables\
+3. Converting categorical variables to binary variables\
+4. Interaction terms\
+5. Logistic and quadratic transformations
+
+## Continuous, Discrete, Binary, and Categorical Variables
+
+Up until this point, the variables we've used in our regressions have all been continuous variables and discrete variables. A continuous variable is a type of quantitative variable that can take on any value within a certain range or interval. It represents measurements or observations that can be expressed on a continuous scale, meaning there are no distinct categories or gaps between possible values. A discrete variable is a type of quantitative variable that can only take on a finite number of values or a countable set of values. It represents observations or measurements that can be categorized into distinct and separate groups or categories.  
+
+When we ran regressions using wages, we can think of this as a continuous variable. Theoretically, it can take any value greater than zero. We also ran regressions including education and age. These variables can also be thought of as continuous variables, but they were measured in our case as discrete values.  
+
+In today's lab, we are going to learn about two new variable types: binary variables and categorical variables.  
+
+Let's load in our data. For this lab, we are going to be using data from the American Community Survey (ACS), which is a demographics survey program conducted by the U.S. Census Bureau. It has been provided to you as a .RDS file, which is the native file type R uses to store data sets. In previous labs, we have used .CSV files to store data, and while .CSV files can be useful, they can't preserve all the data types we will be exploring in this lab.  
+
+Loading a .RDS file is very simple. We can click File -> Open File and select the .RDS file from the browser. When prompted, we will save our data under the variable name "data". Make sure you create and save a new R Script, and let's call the **dplyr** package at the top of our document. We also want to install and call the **haven** package.  
+
+Let's take a look at our data.
+
+```{r 1.1, include=FALSE}
+#Make sure your directory is correct
+data <- readRDS("acs_2009to2018.rds")
+```
+
+```{r 1.2}
+summary(data)
+head(data)
+```
+
+We can also get a better look at our data using the **View()** command.
+
+```{r 1.3, eval=FALSE}
+View(data)
+```
+
+If we look at our types of data, *age* and *school* are discrete variables. The variable *inctot* is a continuous variable.  
+
+What about our labor force variable, *LF*? If we look at this column, we can see that it only takes the value 1 and 0. This is because *LF* is a binary variable. Binary variables have lots of alternative names, including dummy variables and indicator variables. They map to the idea of boolean logic we discussed in Lab 1, where 1 means TRUE and 0 means FALSE. In the context of our data, 1 means that the person is participating in the labor force, while 0 means they are not.  
+
+Say we were to calculate the average of *LF*:
+
+```{r 1.4}
+mean(data$LF)
+```
+
+What is the interpretation of this output? Think about the way we calculate means. We add up all our observations and divide by the number of observations. So, if we perform this calculation in a column that only contains ones and zeros, we are going to end up with the proportion of our sample that displays that characteristic. Let's verify:
+
+```{r 1.5}
+# Find the dimensions of our data
+dim(data)
+
+# Multiply the # of observation by the mean
+dim(data)[1] * mean(data$LF)
+
+# Verify with the table() command
+table(data$LF)
+```
+
+As you can see, the numbers match.  
+
+Let's move on to our marital status variables, *marst* and its corresponding *marstid*. These variables represent the same information; the *marstid* variable exists to quickly show us the number corresponding to each string label. We can generate a quick key to verify this is the case. Notice that the numbers in the key correspond to the *marstid* column.
+
+```{r 1.7}
+data.frame(levels(data$marst))
+```
+
+Our *marst* variable is a categorical variable. A categorical variable, also known as a qualitative variable, is a type of variable that represents qualitative characteristics or attributes rather than numerical values. It divides data into distinct categories or groups and describes the characteristics or qualities of the items being measured. Although we do have numbers associated with our *marst* variable (through the *marstid* variable), these numbers don't take on any meaningful value. For example, we can (computationally) find the mean of the *marstid* variable. 
+
+```{r 1.8}
+mean(data$marstid)
+```
+
+However, how do we interpret this? The answer is, we simply can't, it doesn't have any meaning.  
+
+While we can't get any meaningful information about categorical variables from finding the average or generating a five-number summary using the **summary()** command, we can use the **table()** and/or **hist()** commands to get an idea of what is contained within the variable.
+
+```{r 1.9}
+table(data$marst)
+hist(data$marstid)
+```
+
+## Regressions with Binary Variables
+
+We can run regressions with binary variables the same way we have done previously using the **lm()** command.  
+
+```{r 2.1}
+reg1 <- lm(school ~ LF, data = data)
+summary(reg1)
+```
+
+How do we interpret these regression results? Well, remember that our dummy variable can only take the value 1 or zero. So, our intercept term would be the average years of schooling for people who are not in the labor force. The coefficient on *LF* is the additional average years of schooling for people who are in the labor force.So, a person in the labor force would have, on average 13.45 years of schooling.
+
+We can also perform multiple regressions and include binary variables.
+
+```{r 2.2}
+reg2 <- lm(school ~ LF + age, data = data)
+summary(reg2)
+```
+
+How do we interpret these coefficients?
+
+## Regressions and Categorical Values
+
+We established earlier that, even when we have numbers associated with our categorical variables, the values of those variables are meaningless. Therefore, we cannot use them to run a regression. That does not mean, however, we cannot use this information. To use the information contained within categorical variables in a regression, we have to convert the variable to a set of dummy variables. We will accomplish this using the **case_when()** function, as well as the **mutate()** function that is part of the **dplyr** package.
+
+This set of dummy variables can be the same size as our number of categories, or we can combine multiple categories. If we look at our *marst* variable, we can see that it can take six possible values. Let's turn our six categories into four indicators: an indicator for if you are married, an indicator if you are separated or divorced, an indicator if you are widowed, and an indicator if you were never married.
+
+```{r 3.1}
+data <- data %>% 
+  mutate(
+    married = case_when(
+      as.numeric(marst) %in% 1:2 ~ 1, # For numbers in sequences, we can use this notation
+      T ~ 0
+    ),
+    divorced = case_when(
+      as.numeric(marst) %in% c(3, 4) ~ 1, # we can also use vectors
+      T ~ 0
+    ),
+    widowed = case_when(
+      as.numeric(marst) == 5 ~ 1, # or logical operators
+      T ~ 0
+    ),
+    nomarried = case_when(
+      as.numeric(marst) == 6 ~ 1,
+      T ~ 0
+    )
+  )
+```
+
+If we look at our data using the **View()** command and scroll right, we can see that we have four additional columns. Each of these corresponds to the dummies we just created. We can verify that everything was done correctly by comparing the results of the **table()** command with the **sum()** of our *married* variable.
+
+```{r 3.2}
+table(data$marst)
+
+120252 + 4353 
+
+sum(data$married)
+```
+
+Now let us run a regression of income on the dummies we just created.
+
+```{r 3.3}
+reg3 <- lm(inctot ~ married + divorced + widowed + nomarried, data = data)
+summary(reg3)
+```
+
+Notice that our row for *nomarried* is full of NAs. This is because including all the dummies introduced perfect multicollinearity into our model, and so R automatically drops it. To get around this issue, we can exclude one of the binary variables in our regression. This excluded variable becomes the base case and shows up in the intercept. To illustrate, let's drop the *nomarried* dummy from our regression and then interpret the results.
+
+```{r 3.4}
+reg4 <- lm(inctot ~ married + divorced + widowed, data = data)
+summary(reg4)
+```
+
+As we stated above, we have omitted *nomarried* from our regression and it has now become the base case. It is now captured in our intercept. So, the interpretation of the intercept is the average income when the *married*, *divorced*, and *widowed* dummies are zero, which is equivalent to saying the average income for the people who have never been married. The coefficients on our dummies show us how much we should add (or subtract) from the intercept to find the average income for each of our dummy groups. That is, the average income for married people is the intercept plus 15,911.1 (49,452.4), and the average income for widowed people is the intercept minus 3,900.7 (29,640.6).  
+
+It doesn't matter which dummy we exclude; while the coefficients will change, the end interpretation will not. To illustrate, let's exclude our *married* dummy instead, making married people our base case. If we look at the intercept of this regression, it is the same as the average income we calculated above from **reg4**.
+
+```{r 3.5}
+reg5 <- lm(inctot ~ divorced + widowed + nomarried, data = data)
+# Our base case is now married people
+summary(reg5)
+```
+
+Another way we can get around the perfect multicollinearity issue is by dropping the intercept term. We can drop the intercept in our regression using the following notation.
+
+```{r 3.6}
+reg6 <- lm(inctot ~ married + divorced + widowed + nomarried - 1, data = data)
+summary(reg6)
+```
+
+In this regression, we no longer have an intercept term. The coefficients are now the average incomes for each of the dummy groups (note the coefficient on *married*). However, generally we would rather exclude a dummy than drop the intercept. When we exclude a dummy, it is easy to see relative difference in averages between our base case and the various dummy groups. This is less obvious when we drop the intercept, and we would have to manually calculate the differences. Furthermore, if the goal is to calculate averages, we could just filter our data and find group means. E.g.,
+
+```{r 3.7}
+data %>% 
+  filter(married == 1) %>% 
+  summarise(mean = mean(inctot))
+```
+
+## Interacting Variables
+
+When we include dummy variables, essentially what we are doing is allowing for there to be an intercept change between variables. Let's illustrate.
+
+```{r 4.1}
+reg7 <- lm(inctot ~ married + age, data = data)
+summary(reg7)
+```
+
+```{r 4.2, echo=FALSE}
+age <- seq(0, 60, by = 1)
+fun1 <- function(x) 46564 - 218 * x
+fun2 <- function(x) 61350 - 218 * x
+
+matplot(age, cbind(fun1(age), fun2(age)), type = "l", col = c("blue", "red"))
+```
+
+As you can see, our two curves are a vertical displacement of each other but otherwise parallel.  
+What if we think that the effect of age is different for married versus unmarried people? We aren't able to explore this possibility using the model specified in **reg7**. While each group starts at a different place (the intercept), the underlying relation between our two groups is the same (they have the same slope). If we think that there are differences in slopes, we can add interaction terms. An interaction term is simply the multiplication of two or more variables.  
+
+There are a variety of ways to create interaction terms. We can create a new column in our data frame and then incorporate it into our regression.
+
+```{r 4.3}
+data$marriedxage <- data$married * data$age
+
+reg8.1 <- lm(inctot ~ married + age + marriedxage, data = data)
+summary(reg8.1)
+```
+
+Alternatively, we can interact the terms when we are calling the regression itself.
+
+```{r 4.4}
+reg8.2 <- lm(inctot ~ married + age + married * age, data = data)
+summary(reg8.2)
+```
+
+As you can see, these outputs are equivalent.  
+
+How do we interpret these results? Well, we have interacted our *married* dummy with age. When *married* is one, we are multiplying -170 * 1 * age, and when *married* is zero, we multiply zero, and thus the whole term goes to zero. So, the coefficient on our interaction term can be thought of as the additional change in the slope coefficient for our married people. To illustrate:
+
+```{r 4.5, echo=FALSE}
+fun3 <- function(x) 41453 - 128 * x
+fun4 <- function(x) 41453 + 24275 - (128 + 171) * x
+
+matplot(age, cbind(fun3(age), fun4(age)), type = "l", col = c("blue", "red"))
+```
+
+As you can see, these lines are no longer parallel, as the slope for the married people is steeper.
+
+## Logged Variables and Quadratic Transformations
+
+Sometimes, we apply certain transformations to our variables. A very common transformation is taking the natural log of a variable. We might log a variable to make it approach a normal distribution, since the normal distribution has many desirable properties. We can also log variables to change the interpretation.  
+
+To log variables, we can create entirely new columns like we did above for the interaction term, or we can log them directly in our **lm()** command. 
+
+```{r 5.1}
+data2 <- data %>% 
+  filter(inctot > 0, school > 0)
+
+data2$linctot <- log(data2$inctot)
+
+reg9 <- lm(linctot ~ log(school), data = data2)
+summary(reg9)
+```
+
+This is a log-log model, which can be interpreted as a 1% change in schooling is associated with a 1.6% change in income.  
+
+Up until this point, we have assumed that our independent variables are linearly related to our dependent variable. This is not necessarily the case. Sometime, there will be reasons to believe that X is related to Y through some other type of function, including (but not limited to) a quadratic function, a cubic function, or a square root function. To incorporate these relationships into the model, we can either create new columns.
+
+```{r 5.2}
+data$agesq <- data$age^2
+
+reg10 <- lm(inctot ~ age + agesq, data = data)
+summary(reg10)
+```
+
+So, income rises with age but at a decreasing rate, until some critical point where every additional year decreases income.

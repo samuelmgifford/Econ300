@@ -1,0 +1,104 @@
+---
+title: "Lecture 1"
+format: revealjs
+chalkboard: true
+editor: visual
+smooth-scroll: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r, echo=FALSE}
+library(data.table)
+library(ggplot2)
+options(scipen=999)
+```
+
+## Introduction - Who am I
+
+-   Bachelor's in actuarial science, 2013
+    -   Pricing actuary at Allstate until 2019
+-   Software Engineer in financial risk management 2019-2020
+-   4th year PhD student in economics
+    -   Anticipated graduation next academic year
+    -   Current research in networks among boards of governors
+-   1150 ELO in Age of Empires 2
+-   Married for 12 days
+
+## Introduction - Who Are You?
+
+-   This is a small class - I should learn all of your names quickly
+-   Name, major, year
+-   Something interesting about yourself (Optional, but recommended)
+    -   Hobbies? Fun summer activities? Favorite math theorem?
+
+## Introduction - What is Econometrics
+
+![Source: Randall Munroe (xkcd)](../img/correlation.png)
+
+## Introduction - What is Econometrics
+
+-   Historically, measurement for economists
+    -   Use data to construct supply/demand curves, elasticity, etc.
+-   Current focus is causal analytics
+    -   Used for policy analysis. Used by many fields!
+-   Mechanically, this class is about interpreting linear regression
+    -   And mostly about understanding its limitations
+    
+## Syllabus Review
+
+-   Office hours after class. If these times don't work you can let me know and I should be able to accommodate most times.
+-   Statistical software will be used in class and homework
+-   Class participation via iclicker, and short weekly homework assignments
+    -   These are intended to be easy points to keep you engaged
+-   This class is harder than what you've probably had in the past. You'll need to pay attention in class to get an A/B
+    -   But it's really not that hard if you actually try!
+
+## What is Econometrics - a motivating example
+
+-   What is the effect of college education on income?
+
+![](../img/salarybydegree.png){width="250%"}
+
+-   Will getting a masters degree after graduating increase your earnings by \$13,000?
+
+## Motivating Example, major choice
+
+![](../img/salaryandgrebymajor.png){width="200%"}
+
+-   Is the only difference the choice of major?
+
+## Motivating Example (continued)
+
+```{r}
+library(data.table)
+library(ggplot2)
+dt <- fread("../data/salarybymajor - Sheet1.csv")
+ggplot(data=dt[,.(`Quantitative GRE Score`,`Starting Salary (2020)`)],aes(x=`Quantitative GRE Score`,y=`Starting Salary (2020)`)) + geom_point() + theme_bw() + geom_smooth(method="lm",se=F,linetype="dashed")
+```
+
+-   Engineering majors are very different from history majors before entering a program
+
+## Introduction - What is Econometrics
+
+-   What we want is the effect of college (or major) while holding all else constant ("Ceteris Paribus")
+-   Normally we can achieve this by a randomized control trial
+    -   Usually not practical or ethical
+    -   e.g. randomly exposing people to wildfire smoke
+
+## Introduction - What is Econometrics
+
+-   Instead we make use of research designs that use "natural experiments"
+    -   For schools: lotteries for charter school attendance
+    -   For pollution: the direction that wind is blowing
+
+## Introduction - What is Econometrics
+
+-   Our workhorse model is ordinary least squares (OLS) regression
+    -   We're just fitting a line to data
+    -   The nuance lies in the interpretation
+    -   Building block of more advanced machine learning and AI
+

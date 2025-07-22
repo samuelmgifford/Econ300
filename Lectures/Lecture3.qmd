@@ -1,0 +1,892 @@
+---
+title: "Lecture 3"
+format: revealjs
+chalkboard: true
+editor: visual
+smooth-scroll: true
+prefer-html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r, echo=FALSE}
+library(data.table)
+library(ggplot2)
+options(scipen=999)
+```
+
+## Correlation: Displacement vs Horsepower
+
+```{r}
+ggplot(data=mtcars,aes(x=disp,y=hp)) + geom_point() + theme_bw() +ggtitle("displacement vs horsepower") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+## Correlation: Answer {visibility="hidden"}
+
+```{r}
+ggplot(data=mtcars,aes(x=disp,y=hp)) + geom_point() + theme_bw() +ggtitle("displacement vs horsepower") + theme(plot.title = element_text(hjust = 0.5)) + geom_smooth(method="lm")
+print(cor(mtcars$disp,mtcars$hp))
+```
+
+## Correlation: Displacement vs Miles per Gallon
+
+```{r}
+ggplot(data=mtcars,aes(x=disp,y=mpg)) + geom_point() + theme_bw() +ggtitle("displacement vs miles per gallon") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+## Correlation: Answer {visibility="hidden"}
+
+```{r}
+ggplot(data=mtcars,aes(x=disp,y=mpg)) + geom_point() + theme_bw() +ggtitle("displacement vs mpg") + theme(plot.title = element_text(hjust = 0.5)) + geom_smooth(method="lm")
+print(cor(mtcars$disp,mtcars$mpg))
+```
+
+## Correlation: Real Axle Ratio vs Quarter Mile Time
+
+```{r}
+ggplot(data=mtcars,aes(x=drat,y=qsec)) + geom_point() + theme_bw() +ggtitle("rear axle ratio vs quarter mile time") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+## Correlation: Answer {visibility="hidden"}
+
+```{r}
+ggplot(data=mtcars,aes(x=drat,y=qsec)) + geom_point() + theme_bw() +ggtitle("rear axle ratio vs quarter mile time") + theme(plot.title = element_text(hjust = 0.5)) + geom_smooth(method="lm")
+print(cor(mtcars$drat,mtcars$qsec))
+```
+
+## Correlation Example: nonlinear
+
+```{r}
+x <- seq(from=-3,to=3,length.out=100)
+y <- x^2
+dt <- data.table(x,y)
+ggplot(data=dt,aes(x=x,y=y)) + geom_point() + theme_bw()
+```
+
+## Correlation Example: nonlinear, answer {visibility="hidden"}
+
+```{r}
+ggplot(data=dt,aes(x=x,y=y)) + geom_point() + theme_bw() + geom_smooth(method="lm")
+print(cor(dt$x,dt$y))
+```
+
+## OLS Regression
+
+> -   Our goal: to estimate the causal effect of some treatment
+>     -   e.g. how does welfare reform impact poverty rates?
+>     -   Does getting the flu vaccine improve your health?
+>     -   Does increasing teacher salary improve students outcomes?
+>     -   Do cats respond to cat music?
+>         -   This is a real academic paper.
+
+## OLS Regression: Causal Relationships
+
+> -   Even simple causal models can have very complicated formulas. Think physics calculations
+> -   We need to simplify this model to get anywhere. We assume a linear relationship
+> -   e.g. student grades increase (or decrease) linearly with teacher salary
+>     -   Going from \$20,000/year to \$21,000/year has the same effect on grades as going from \$150,000/year to \$151,000/year
+>     -   We relax this assumption later
+
+## A Roadmap of What's to Come
+
+> -   Start with mechanics of OLS and how to interpret
+>     -   Focus is on describing data
+> -   Once we get to multivariate OLS we can control for issues we know cause bias
+> -   We finish by engineering specific controls to create "quasi-experiments"
+
+## OLS Regression: "The Core Model"
+
+> -   We arrive at what the book calls the core model, though you will not see this terminology elsewhere
+>     -   It's also called the regression equation or estimating equation
+> -   It is a generic formula that applies to any relationship between x and y:
+> -   $y_i=\beta_0 + \beta_1 x_i + \varepsilon_i$
+
+## OLS Regression: Example
+
+> -   Suppose we use the teacher salary example: how do student's test scores relate to teacher salaries on average?
+> -   We can rename our "core model":
+>     -   $grade_i = \beta_0 + \beta_1 salary_i + \varepsilon_i$
+> -   How do we interpret $\beta_1$? $\beta_0$?
+
+## OLS Regression: iClicker
+
+> -   $grade_i = \beta_0 + \beta_1 salary_i + \varepsilon_i$
+> -   Salary is in dollars. Grade is in GPA scale (1-4). Interpret $\beta_1$
+> -   A A 1 unit increase in GPA is associated with a $\beta_1$ dollar increase in teacher salary, on average
+> -   B A 1 dollar increase in teacher salary is associated with a $\beta_1$ unit increase in student GPA, on average
+> -   C A $\beta_1$ unit increase in GPA is associated with a 1 dollar increase in teacher salary, on average
+> -   D A $\beta_1$ dollar increase in teacher salary is associated with a 1 unit increase in student GPA, on average
+
+## OLS Regression: "The Core Model"
+
+> -   $y_i=\beta_0 + \beta_1 x_i + \varepsilon_i$
+>     -   $y_i$ is our outcome (dependent) variable for individual i. Here it's student i's grade
+>     -   $\beta_0$ is the intercept. If we take our model seriously it's the **average** grade for a student whose teacher has 0 salary
+>     -   $x_i$ is the independent variable for individual i. Here it is student i's teacher's salary
+>     -   $\beta_1$ is the slope. This is the actual (average) causal effect of increasing x by 1 unit on y
+
+## OLS Regression: "The Core Model"
+
+> -   $y_i=\beta_0 + \beta_1 x_i + \varepsilon_i$
+> -   $\varepsilon_i$ is the error term. It captures every factor not included in our model (which is a lot of things!)
+>     -   Examples: student intelligence. Other student characteristics (e.g. demographics). Whether the student is interested in a subject. Whether the student slept in for an exam.
+>     -   It has mean value of 0
+
+## Sources of variation
+
+> -   Suppose we talk about "the" causal effect of increasing teacher salary on grades. Consider the following ways that teacher salary can increase:
+>     -   A more qualified teacher is hired
+>     -   A bonus is paid based on performance
+>     -   Teachers with low pay are laid off and class sizes increase
+>     -   There is a shortage of teachers, driving up salaries
+>     -   Salaries must be increased due to bad working conditions
+>     -   Hours are increased, so salary is also increased
+
+## What we're measuring
+
+> -   We're measuring the average association between the two variables in the data
+>     -   We're getting a mix of all of the possible reasons why different teachers have different salarys (and students have different grades)
+>     -   The weightings are based on the population and sample we use
+> -   This is called a reduced form estimate.
+> -   Just describing this data is often useful
+
+## OLS Regression: Estimating the Core Model
+
+> -   We don't know the true values of $\beta_0, \beta_1$, so we need to estimate
+> -   We end up estimating $y_i = \hat\beta_0 + \hat\beta_1 x_i + \hat\varepsilon_i$
+> -   Hats are used to indicate estimates. We know the actual value of x and y, but not anything else
+
+
+## OLS Questions
+
+-   $grade_i = \beta_0+\beta_1 salary_i + \varepsilon_i$
+    -   $salary_i$ is salary (in thousands of dollars), $grade_i$ is final grade in percent (e.g. 100)
+
+> -   Suppose $\beta_0=60, \beta_1=1$ how do we interpret this?
+> -   Student 1 has a teacher who is paid \$20000. Calculate $\hat grade_1$
+> -   Student 1's actual grade in class was a 65. What is $\varepsilon_1$?
+
+## OLS Questions
+
+-   $grade_i = \beta_0+\beta_1 salary_i + \varepsilon_i$
+    -   $salary_i$ is salary (in thousands of dollars), $grade_i$ is final grade in percent (e.g. 100)
+
+> -   What is included in $\varepsilon$?
+> -   Suppose we estimate $\hat\beta_0=40,\hat\beta_1=2$. What is $\hat grade_1, \hat\varepsilon_1$?
+> -   What is included in $\hat\varepsilon$ that is not included in $\varepsilon$?
+
+## OLS Regression: Some Observations
+
+> -   Core model: $y_i=\beta_0+\beta_1 x_i +\varepsilon_i$
+
+> -   Key question 1: If the model is this simplified, is it even useful?
+> -   From a **predictive analytics** perspective this is very weak. But as long as some simple assumptions are satisfied (covered later) this efficiently measures an **average causal effect** .
+> -   This is important for policy evaluation. If a union negotiates a salary increase what will happen to the average grade? This is the causal effect.
+
+## OLS Regression: Some Observations
+
+> -   Key Question 2: Given our model, how do we calculate $\beta_1$ (and $\beta_0$)?
+> -   We can never observe $\beta_1$, but we can estimate it as $\hat\beta$ using ordinary least squares regression
+> -   $\hat\beta_1$ is a sample statistic (we'll calculate later)
+> -   We then have to ask if $\hat\beta_1$ is close to $\beta_1$
+
+## OLS regression: ideas
+
+> -   Our model is a line, and we have data. We estimate $\beta_0,\beta_1$ by finding the best fit line to the observed data
+> -   We can measure the fit using sum of squared errors or mean squared error
+> -   $SSE=\sum \varepsilon_i^2=\sum (y_i-\beta_0-\beta_1 x_i)^2$, $MSE=\frac{SSE}{n}$
+
+## OLS Regression: Graph
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(latex2exp)
+text_scaling <- 1.0 #created on ~140 DPI 4k monitor
+n <- 15
+x <- rnorm(n)
+y <- 3+1.1*x+rnorm(n)
+fit <- function(b0,b1,m) {
+  yhat <- b0+b1*x
+  e <- y-yhat
+  metric <- m(e)
+  tbl <- data.table(x,y,yhat,e,d=m(e))
+  
+  #partition to find 3 examples
+  tbl[,example:=0]
+  leftside <- sort(x)[n/3]
+  rightside <- sort(x)[2*n/3]
+  lhs <- tbl[x<=leftside][which.max(abs(e)),x]
+  rhs <- tbl[x>=rightside][which.max(abs(e)),x]
+  mid <- tbl[x>leftside & x < rightside][which.max(abs(e)),x]
+  if(tbl[abs(x-lhs)<1e-4,e]*tbl[abs(x-rhs)<1e-4,e]>0) {
+    pos <- tbl[abs(x-lhs)<1e-4,e] > 0
+    if(pos) {
+      mid <- tbl[which.min(e),x]
+    } else {
+      mid <- tbl[which.max(e),x]
+    }
+  }
+  tbl[abs(x-lhs)<1e-4,example:=1]
+  tbl[abs(x-rhs)<1e-4,example:=1]
+  tbl[abs(x-mid)<1e-4,example:=1]
+  tbl[,example:=as.factor(example)]
+  
+  #Add jitter to make lines visible
+  crit <- tbl[example==1]
+  crit[,n:=.I]
+  crit <- rbind(crit,crit,crit)
+  jitter <- 1e-2
+  crit[,x:=x+c(-jitter,0,jitter),by=n]
+  
+  ymax <- max(c(y,yhat))
+  ymin <- min(c(y,yhat))
+  
+  colors <- c("1"="red", "0"="black")
+  
+  #find whitespace
+  #uses lowerleft, should probably use midpoint. Vectorized for points
+  inrect <- function(pointx,pointy,regionx,regiony,xres,yres) {
+    pointx > regionx & pointx < regionx+xres & pointy>regiony & pointy < regiony+yres
+  }
+  xmin <- min(tbl$x)
+  xmax <- max(tbl$x)
+  gridsize <- 100
+  xgrid <- seq(from=xmin,to=xmax,length.out=gridsize)
+  ygrid <- seq(from=ymin,to=ymax,length.out=gridsize)
+  #assume each point in grid is square in lower-left corner
+  grid <- as.data.table(expand.grid(xgrid,ygrid))
+  names(grid) <- c('x','y')
+  xres <- (xmax-xmin)/gridsize
+  yres <- (ymax-ymin)/gridsize
+  xcheck <- c(tbl$x,xgrid+.001)
+  ycheck <- c(tbl$y,b0+b1*(xgrid+.001))
+  ingrid <- unlist(Map(function(x,y)as.numeric(any(inrect(xcheck,ycheck,x,y,xres,yres))),grid$x,grid$y))
+  grid[,occupied:=ingrid]
+  grid[,i:=rep(1:gridsize,gridsize)]
+  grid[,j:=rep(1:gridsize,each=gridsize)]
+  grid[,index:=.I]
+  #Go from grid -> matrix. Find largest submatrix with all entries 0
+  #Given we're at (i,j) we need to calculate (i+1,j+1), (i+1,j), and (i,j+1)
+  s1 <- grid[occupied==0,index]
+  ii <- grid[index%in%s1,i]
+  jj <- grid[index%in%s1,j]
+  #down +1, right+1, downright=+101
+  s2 <- grid[index%in%s1 & i!=gridsize & j!=gridsize & occupied[index+1]==0 & occupied[index+100]==0 & occupied[index+101]==0]
+  
+  #If rectangular note that indices will be staggered by 1 or 100. Could probably use this to implement a rect version
+  #returns lower-left pixel
+  #todo: k largest regions, function to embed into a location for ggplot
+  #ideal: +whatever_grob(,xmin=r1$xmin,xmax=,ymin=,ymax=)
+  findLargestSquareWhitespace <- function(grid,gridsize) {
+    #base case
+    s1 <- grid[occupied==0,index]
+    #recursion
+    size <- 1
+    f <- function(s,n) {
+      size <<- size+1
+      #This isn't recursing properly - just checks the same 1x1 square
+      #need to check if in s and diagonal is in s
+      val <- grid[index%in%s & 
+             i<gridsize-(n-1) & 
+             j<gridsize-(n-1) & 
+             (index+1)%in%s & #these should be the that s contains the index values corresponding to these
+             (index+100)%in%s & 
+             (index+101)%in%s,index]
+      if(!length(val)) {
+        return(s)
+      }
+      return(f(val,n+1))
+    }
+    return(list(indices=f(s1,1),size=size))
+  }
+  #to be improved
+  getRegion <- function(ws) {
+    wxmin <- grid[index==ws$indices[1],x]
+    wxmax <- wxmin + xres*ws$size
+    wymin <- grid[index==ws$indices[1],y]
+    wymax <- wymin + yres*ws$size
+    list(xmin=wxmin+xres,xmax=wxmax-xres,ymin=wymin+yres,ymax=wymax-yres)
+  }
+  
+  ws <- findLargestSquareWhitespace(grid,100)
+  regiona <- getRegion(ws)
+  
+  #jankily fill in the whitespace
+  
+  xfill <- seq(from=regiona$xmin,to=regiona$xmax,by=xres/2)
+  yfill <- seq(from=regiona$ymin,to=regiona$ymax,by=yres/2)
+  xyfill <- expand.grid(xfill,yfill)
+  
+  ingrid2 <- unlist(Map(function(x,y)as.numeric(any(inrect(xyfill$Var1,xyfill$Var2,x,y,xres,yres))),grid$x,grid$y))
+  grid[,occupied2:=ingrid2]
+  grid[,occupied:=pmin(occupied2+occupied,1)]
+  
+  ws <- findLargestSquareWhitespace(grid,100)
+  regionb <- getRegion(ws)
+  
+  
+  graph <- ggplot(data=tbl,aes(x=x)) + geom_point(aes(y=y,color=example)) + geom_line(aes(y=yhat)) + theme_bw() +
+    scale_fill_manual(values=rgb(1,1,0,.33),breaks=c()) + 
+    scale_color_manual(values=colors,breaks=c())
+  
+  
+  
+  #need to split out y and yhat: 1 is the point, 1 is the line.
+  #then just add a ymin/ymax override
+  highlightResidual <- function(g,dt,indicator,yvars,xvars) {
+    crit <- tbl[tbl[[indicator]]==1]
+    crit[,n:=.I]
+    n <- nrow(crit)
+    crit <- do.call(rbind,rep(list(crit),n))
+    jitter <- 1e-2
+    crit[,x:=x+c(-jitter,0,jitter),by=n]
+    
+    ymax <- max(sapply(yvars,max))
+    ymin <- min(sapply(yvars,min))
+    
+    for(i in 1:n) {
+      g <- g + geom_ribbon(data=crit[n==i], aes_string(x="x",ymax="yhat",fill="example",ymin="y"))
+    }
+    g
+  }
+  
+  labelPoint <- function(g,dt,f,x="x",y="y") {
+    dtx <- copy(dt)
+    dtx[,l:=f(dt)]
+    yheight <- (dev.size("cm")[2]*10)-10 #rough guess in mm
+    ylowest <- ymin+(3*4)/yheight*(ymax-ymin)/2 #/2 since vjust=.5 below. Probably scaling dependent
+    yhighest <- ymax-(3*4)/yheight*(ymax-ymin)/2
+    dtx[,yjitter:=ifelse(y>yhighest,yhighest,ifelse(y<ylowest,ylowest,y))]
+    g + geom_label(data=dtx,aes_string(x=x,y="yjitter",label="l"),hjust=0,alpha=.5,vjust=.5,size=3*text_scaling,nudge_x=(xmax-xmin)/100)
+  }
+  formatLabel <- function(dt) {
+    y <- round(dt$y,2)
+    yhat <- round(dt$yhat,2)
+    e <- round(y-yhat,2)
+    error <- round(m(e),2)
+    
+    paste0("y:",y,"\nyhat:",yhat,"\ne:",e,"\nerror:",error)
+  }
+  
+  addEquation <- function(g,r,txt) {
+    g + geom_text(x=(r$xmax-r$xmin)/2+r$xmin,y=(r$ymax-r$ymin)/2+r$ymin,label= txt,size=7*text_scaling,fontface="bold")
+  }
+  
+  addTable <- function(g,dt,r) {
+    tbl <- tableGrob(dt, rows = NULL, theme=ttheme_default(base_size=10*text_scaling))
+    g + annotation_custom(tbl, xmin=r$xmin, xmax=r$xmax, ymin=r$ymin, ymax=r$ymax) 
+  }
+  
+  tbl[,use:=example]
+  tbl[,i:=.I]
+  extras <- sample(tbl[example==0,i],3)
+  tbl[example==0& i%in%extras,use:=1]
+  tbl[,i:=NULL]
+  
+  tblformat <- tbl[use==1]
+  
+  dtformat <- tblformat[,list(x=as.character(round(x,2)),
+                    y=as.character(round(y,2)),
+                    yhat=as.character(round(yhat,2)),
+                    `e=y-yhat`=round(e,2),
+                    `d=e^2`=round(d,2))]
+  
+  dtformat <- rbind(dtformat,
+        data.table(
+          x="Total:",
+          y="--",
+          yhat="--",
+          `e=y-yhat`=round(sum(tbl$e),2),
+          `d=e^2`=round(sum(tbl$d),2)
+        ))
+  
+  
+  #add beta_0, beta_1, SSE
+  #add red point labels (y, yhat, e)
+  #existing graph, data.table of underlying, name of column to indicate highlighting (=1 if highlight)
+  
+  #can probably do indicators via aes...
+  graph <- highlightResidual(graph,tbl,"example",c("y","yhat"),"x")
+  graph <- labelPoint(graph,tbl[example==1],formatLabel)
+  graph <- addEquation(graph,regionb,paste0("y = ",b0," + ",b1," x + e"))
+  
+  list(metric,tbl,graph)
+}
+output <- fit(3,1.1,function(x)x^2)
+output[[3]]
+```
+
+## OLS Regression: Fitting
+
+> -   Here we have a scatterplot of data, and the line $y=3+1.1x$. For each point we can calculate the error term, then take the average to get the mean square error.
+> -   How do we know what the best fit line is?
+> -   Naive: for every possible $\beta_0,\beta_1$ compute the MSE (or SSE), then choose the parameters that give the lowest value (best fit)
+>     -   This is actually how many machine learning models work, but they use methods from calculus to make it fast
+
+::: {.content-visible unless-format="pdf"}
+## OLS Regression: Fitting
+
+> -   Why use mean square error and not mean error?
+>     -   Note that for any $\beta_1$, we can calculate $\beta_0$ using simple algebra to make the mean 0
+
+## Question: Why SSE?
+
+```{r}
+dt <- data.table(x=x,y=y)
+dt[,y1:=mean(y)]
+dt[,y2:=x+mean(y)-mean(x)]
+dt[,y3:=-x+mean(y)+mean(x)]
+ggplot(data=dt,aes(x=x,y=y)) + geom_point() + theme_bw() + 
+  geom_line(aes(y=y1),color='red') +
+  geom_line(aes(y=y2),color='blue') +
+  geom_line(aes(y=y3))
+```
+
+## OLS Motivating Example: Student Scores
+
+```{r}
+dt <- fread("../data/attendance.csv")
+#print(dt)
+ggplot(data=dt,aes(y=grade,x=attendance)) + geom_point() + geom_smooth(method="lm") + theme_bw()
+```
+
+## OLS Motivating Example: Student Scores
+
+```{r}
+summary(lm(data=dt,grade ~ attendance))
+```
+
+## OLS Regression: How to Estimate
+
+> -   Core model: $y_i=\beta_0+\beta_1 x_i +\varepsilon_i$
+
+> -   Given our model, how do we calculate $\beta_1$ (and $\beta_0$)?
+> -   We can never observe $\beta_1$, but we can estimate it as $\hat\beta$ using ordinary least squares regression
+> -   We then have to ask if $\hat\beta_1$ is close to $\beta_1$
+
+## OLS Regression: How to Estimate
+
+> -   Our model is a line, and we have data. We estimate $\beta_0,\beta_1$ by finding the best fit line to the observed data
+> -   We can measure the fit using sum of squared errors or mean squared error . \* $SSE=\sum \varepsilon_i^2=\sum (y_i-\beta_0-\beta_1 x_i)^2$, $MSE=\frac{SSE}{n}$
+
+## OLS Regression Estimates: Graphical
+
+```{r,echo=FALSE}
+n <- 15
+x <- rnorm(n)
+y <- 3+1.1*x+rnorm(n)
+output <- fit(3,-2,function(x)x^2)
+output[[3]]
+cat("SSE:",sum(output[[1]]),"\n")
+#print(output[[2]][,.(x,y,yhat,e,`e^2`=d)])
+```
+
+## OLS Regression Estimates: Graphical
+
+-   What about now?
+
+```{r,echo=FALSE}
+output <- fit(0,1.1,function(x)x^2)
+output[[3]]
+cat("SSE:",sum(output[[1]]),"\n")
+#print(output[[2]][,.(x,y,yhat,e,`e^2`=d)])
+```
+
+## OLS Regression Estimates: Graphical
+
+We need to shift our estimate up so that it's halfway between the data ($\bar e=0$):
+
+```{r,echo=TRUE}
+mean(output[[2]]$e)
+```
+
+## OLS Regression Estimates: Graphical
+
+-   Now?
+
+```{r}
+output <- fit(round(mean(output[[2]]$e),4),1.1,function(x)x^2)
+output[[3]]
+cat("SSE:",sum(output[[1]]),"\n")
+#print(output[[2]][,.(x,y,yhat,e,`e^2`=d)])
+```
+
+## OLS Regression Estimates: Graphical
+
+-   Now?!
+
+```{r}
+mm <- lm(data=data.table(x=x,y=y),y~x)
+output <- fit(round(mm$coefficients[1],4),round(mm$coefficients[2],4),function(x)x^2)
+output[[3]]
+cat("SSE:",sum(output[[1]]),"\n")
+#print(output[[2]][,.(x,y,yhat,e,`e^2`=d)])
+```
+
+
+## OLS Formula
+
+> -   We have a simple formula for $\beta_1$
+> -   $\hat\beta_1=\frac{\sum(x_i-\bar x)(y_i-\bar y)}{\sum(x_i-\bar x)^2}$
+> -   $=\frac{E[(x-\bar x)(y-\bar y)]}{var(x)}$
+> -   $=\frac{cov(x,y)}{var(x)}$
+> -   $=\frac{\rho \sigma_y}{\sigma_x}$
+> -   (Optional) Matrix notation formula: $\hat\beta=(X'X)^{-1}X'Y$
+> -   Note: $\beta_0$ obtained through substitution: $\hat\beta_0=\bar y -\hat\beta_1 \bar x$
+
+## OLS Formula
+
+> -   Key question: is $\hat\beta_1\approx\beta_1?$ ie as $n\to\infty$ does $\hat\beta_1\to\beta_1$?
+> -   Seems unlikely. This is just correlation, yet we're trying to measure a causal parameter. Correlation $\neq$ Causation...
+
+## Properties of $\hat\beta$
+
+> -   Two important questions have not been addressed
+> -   What is the sampling distribution of $\hat\beta$? ie what is its variance. Distribution?
+> -   Under what conditions does $\hat\beta\to\beta$? Or more generally when is $\hat\beta$ **unbiased** : $E[\hat\beta]=\beta$
+>      - Bias is a systematic property.
+
+## Unbiasedness
+
+> -   $\beta_1$ is a causal parameter, but $\hat\beta_1$ is calculated using correlation. Under what conditions do these two equal each other (on average?, e.g. $E[\hat\beta_1]=\beta_1$)
+> -   First, let's simulate an erexample. We have 1000 students who each have a randomly generated "ability" score (mean 0, sd 1)
+> -   They then have an attendance rate that is a partially random and partially determined by ability.
+> -   Generate the score as $10*ability + 5*attendance + \varepsilon$, $\varepsilon \sim N(0,1)$
+
+## Unbiasedness
+
+> - True Equation: $score = 10*ability_i + 5*attendance + \varepsilon$
+> - $cor(ability,attendance) > 0$
+> - Regression: $score_i = \beta_0 + \beta_1 attendance_i + \varepsilon_i$
+> - What is $\beta_1$?
+> - What is in the error term?
+> - Is (A) $E[\hat\beta_1]>\beta_1$, (B) $E[\hat\beta_1]=\beta_1$, (C) $E[\hat\beta_1]<\beta_1$, (D) Too little information
+
+
+## Unbiasedness {visibility="hidden"}
+
+> -   Here $\beta_1=5$: this is our causal parameter. Our $10*ability$ term is not specified in our simple regression so it is included in the error term of our model
+> -   What will the result be?
+
+## Unbiasedness 
+
+```{r,echo=FALSE}
+n <- 1000
+student_id <- 1:n
+ability <- rnorm(n)
+attendance <- 1/(1+exp(-ability-rnorm(n)))
+score <- 10*ability+5*attendance+rnorm(n)
+dt <- data.table(student_id,ability,attendance,score)
+ggplot(data=dt,aes(x=attendance,y=score)) + geom_point() + geom_smooth(method="lm") + theme_bw()
+```
+
+## Unbiasedness 
+
+```{r}
+lm(data=dt,score ~ attendance)
+```
+
+## Unbiasedness 
+
+-   $\beta_1=5$, but $\hat\beta_1=31.36$!
+-   Why?
+
+## Endogenity Explained
+
+-   Our problem is that ability is correlated with both score and attendance
+
+```{r, echo=TRUE}
+cor(dt$ability,dt$attendance)
+cor(dt$ability,dt$score)
+```
+
+> -   Since we don't observe ability in our simple model, it appears in our error term.
+> - Our general condition is exogeneity: we need our error term to be uncorrelated with $x$
+
+## Endogeneity Explained
+
+> -   More generally, $E[\hat\beta_1]=\beta_1 + cor(x,\varepsilon)\frac{\sigma_\varepsilon}{\sigma_x}$
+>     -   Our estimate equals the true estimate plus some bias term
+
+## A second example
+
+> -   Suppose we have the same setup, but now attendance is independent of ability. Will $E[\hat\beta_1]=5$?
+>      - Same formula: $score = 10*ability_i + 5*attendance + \varepsilon$
+>      - Ability is still in our error term
+
+## A second example
+
+```{r, echo=FALSE}
+set.seed(1)
+n <- 1000
+student_id <- 1:n
+ability <- rnorm(n)
+attendance <- 1/(1+exp(-rnorm(n)))
+score <- 10*ability+5*attendance+rnorm(n)
+dt <- data.table(student_id,ability,attendance,score)
+
+
+
+
+
+
+
+
+ggplot(data=dt,aes(x=attendance,y=score)) + geom_point() + geom_smooth(method="lm") + theme_bw()
+```
+
+## A second example
+
+```{r}
+lm(data=dt,score ~ attendance)
+```
+
+-   Kinda! It's close but not exact. What if we used more than 1000 students?
+
+## A second example
+
+```{r,echo=FALSE}
+set.seed(1)
+n <- 1000000
+student_id <- 1:n
+ability <- rnorm(n)
+attendance <- 1/(1+exp(-rnorm(n)))
+score <- 10*ability+5*attendance+rnorm(n)
+dt <- data.table(student_id,ability,attendance,score)
+```
+
+## A second example
+
+```{r}
+lm(data=dt,score ~ attendance)
+```
+
+-   yes!
+
+## Endogeneity: arrows of causality
+
+-   We can interpret these graphically. if X and Y are related we can draw an arrow between them. In our core model X causes Y, and our error term causes Y as well.
+
+## Endogeneity: arrows of causality
+
+![](../img/CoreModelDAG.png)
+
+## Endogeneity: arrows of causality
+
+![](../img/EndogeneityDAG.png)
+
+## A second example
+
+> -   In the first I increase attendance by 1, and grade increases by $\beta_1$. grade is also affected by $e$, but when I increase attendance e does not change, on average
+> -   In the second I increase attendance by 1, and grade directly increases by $\beta_1$, but ability also changed based on $cor(grade,ability)$ and grade changed by on $cor(ability,grade)$. In general as long as x and e is correlated we will have bias
+
+## Example: simpson's paradox
+
+```{r}
+n <- 1000
+group <- floor(runif(n)*5)+1
+x <- group+rnorm(n)
+y <- x-2*group
+dt <- data.table(x=x,y=y,group=as.factor(group))
+
+ggplot(data=dt,aes(x=x,y=y,color=group)) + geom_point() + theme_bw()
+```
+
+## Example: simpson's paradox 
+
+```{r}
+n <- 1000
+group <- floor(runif(n)*5)+1
+x <- group+rnorm(n)
+y <- x-2*group
+dt <- data.table(x=x,y=y,group=as.factor(group))
+
+ggplot(data=dt,aes(x=x,y=y,color=group)) + geom_point() + geom_smooth(method="lm",color="black") + theme_bw()
+```
+
+## Exogenity: when do we have it?
+
+> -   Under what conditions do we have $cor(x,\varepsilon)=0$? \[called exogenous variation\]
+> -   Randomized control trials. If we randomly assign x then any characteristics should average across treatment and control
+> -   Quasi-Experiments: Differences-in-Differences, Instrumental Variables, and Regression Discontinuity most common
+
+## Quasi-Experiment: DID
+
+> -   DiD: How do we measure the effect of immigrant on natives wages?
+>     -   Cuba sends a large wave of migrants to the US. Due to proximity, most settle in Miami. You measure the change in employment and compare it to a very similar nearby region that did not have this random wave of immigration.
+
+## Quasi-Experiment: IV
+
+> -   IV: How do we measure the effect of having a child on future wages?
+>     -   IUD's are over 99% effective in preventing pregnancy. Use individuals whose birth control failed to estimate a causal effect of having a child on future wages
+
+## Quasi-Experiment: RD
+
+> -   RD: How do we determine the effect of passing a class on completing college?
+>     -   An individual who received a 69.9% in a course and a 70% are virutally identical, yet their outcome is very different (pass vs fail). Use this to determine the causal effect of passing a course
+> -   These will be covered in more detail later in the course.
+> -   Another option is to use a multivariate regression with "control variables", which is next chapter
+
+## Administrative Miscellanea
+
+-   Homework 3 due Friday midnight
+-   Quiz 2 today in class (closed note)
+    - Regression focus
+-   Exam 1 next Wednesday (math/stats review + bivariate OLS)
+-   Class survey for extra credit (will send out an announcement once ready)
+-   Bivariate OLS focusing on standard errors
+
+## iClicker
+
+Which of the following statements are true concerning bias
+
+* A $\hat\beta_1$ is unbiased if $\hat\beta_1=\beta_1$ 
+* B $\hat\beta_1$ is unbiased if $E[\hat\beta_1]=\beta_1$
+* C $\hat\beta_1$ is biased if there is a large error term
+* D $\hat\beta_1$ will be biased when outliers are present in the data
+* E OLS regression produces unbiased estimates of $\hat\beta_1$
+
+## Question
+
+You are interested in how the credit rating of a firm (proxied by the interest paid on their bonds) affects the returns of their stock (in percentage points per year). What is your regression equation of interest?
+
+## iClicker
+
+You are interested in how the credit rating of a firm (proxied by the interest paid on their bonds) affects the returns of their stock (in percentage points per year) by running $return_i=\beta_0+\beta_1 credit_i + \varepsilon_i$. What would bias our estimate of $\hat\beta_1$?
+
+> - Companies typically obtain good credit due to their superior operating and financial performance
+> - Companies with bad credit pay more interest, reducing profits and increasing bankruptcy risk
+> - On average, companies with bad credit operate in riskier industries which offer above average returns
+
+## iClicker
+
+You are interested in how the credit rating of a firm (proxied by the interest paid on their bonds) affects the returns of their stock (in percentage points per year) by running $return_i=\beta_0+\beta_1 credit_i + \varepsilon_i$. What would bias our estimate of $\hat\beta_1$?
+
+> - Stock prices follow a random walk, meaning that stock returns are effectively randomly determined
+> - Firms with bad credit receive less analyst coverage, decreasing average returns
+
+## Distribution of $\hat\beta$
+
+> -   As we saw before, our estimate of $\hat\beta_1$ was unbiased in our second example, but even with 1000 students could be off by a substantial margin
+> -   In addition to the mean of $\hat\beta_1$ ($E[\hat\beta_1]$, which when unbiased is equal to $\beta_1$), we want to know the standard deviation
+>     -   To avoid confusion with the standard deviation of other terms, we call this the **standard error**
+
+## Distribution of $\hat\beta$
+
+> -   In its expanded form $\hat\beta_1=\frac{\sum(x_i-\bar x)(y_i-\bar y)}{\sum(x_i-\bar x)^2}$
+>     -   This doesn't need to be memorized, but our estimate is just an average of $x_i, y_i$, and $x_i^2$ values
+>     -   If our estimate is unbiased we have asymptotic normality from the central limit theorem
+> -   How do we find the standard error or $\hat\beta_1$?
+
+## Standard Error of $\hat\beta_1$
+
+> -   Directly: $var(\hat\beta)=\frac{(\hat\beta_{11}-\beta_1)^2 + (\hat\beta_{12}-\beta_1)^2 + ... + (\hat\beta_{1n}-\beta_1)^2}{n}$
+> -   Substitute $\hat\beta_{1i}=\frac{\sum(x_i-\bar x)(y_i-\bar y)}{\sum(x_i-\bar x)^2}$
+> -   You now have a giant formula, simplify! (you're mostly separating out terms and recombining into know forms)
+
+## Standard Error of $\hat\beta_1$
+
+> -   Result: $var(\hat\beta_1)=\frac{\hat\sigma^2}{nVar(x)}$
+> -   $\sigma^2$ is the variance of the regression, ie the variance around the line of fit
+> -   Recall $y_i=\beta_0+\beta_1 x +\varepsilon_i$
+> -   The variation around this line is $var(\varepsilon_i)$ ($=var(y_i-\hat y_i)$)
+
+## Standard Error of $\hat\beta_1$
+
+-   Naturally we can also get standard errors directly from R (the standard deviation from before with n=1000 is 1.49, or 30% of the mean)
+
+```{r,echo=TRUE}
+summary(lm(data=dt,score ~ attendance))
+```
+
+## Standard Error Implications
+
+> -   The more random variation we have in our model (from $\varepsilon$), the noisier our prediction will be
+> -   The more observations we have the more precise our estimate
+> -   The more variation we have in our explanatory variable (independent variable) the more precise our estimate
+
+## A note on consistency
+
+> -   Consistency means that as we increase our number of observations, the thing we're measure ($\hat\beta_1$) will approach some value. OLS is a consistent estimator, we will eventually converge on some value
+> -   If $\hat\beta\to\beta_1$ as $n\to\infty$ we say that our estimator is asymptotically unbiased
+> -   Many common estimators are biased but asymptotically unbiased. Example: $\hat\sigma^2$
+
+## What assumptions are we making?
+
+> -   1: Unbiasedness: $cov(x,\varepsilon)=0$
+
+## What assumptions are we making?
+
+> -   2: Standard error of $\hat\beta_1=\frac{\hat\sigma^2}{nVar(x)}$?
+> -   Homoskedasticity: all errors have the same variance. $var(\varepsilon_1)=Var(\varepsilon_2)=...=Var(\varepsilon_n)$
+> -   Uncorrelated errors: $cor(\varepsilon_i,\varepsilon_j)=0$ for all $i,j$
+>     -   Autocorrelation in time series. Your income in 2024 is probably close to your income in 2023 (unless you're graduating!)
+>     -   Cluster correlation: all students in a specific classroom are subject to construction sound during an exam
+
+## What assumptions are we making?
+
+> -   Given unbiasedness, how do we know this is the best way to estimate $\hat\beta$?
+> -   Gauss-Markov Theorem: OLS is the minimum variance unbiased linear estimator. Required conditions are exactly the ones above
+> -   What if we remove the linear requirement? Then we need only add that error terms are normally distributed.
+
+## A note on Expectation
+
+-   $E[X]$ refers to $\bar x$ or $\mu_x$. If we obtain $\hat\beta=1$ it follows that $E[\hat\beta]=1$. Similarly $E[1]=1$
+
+## Homoskedasticity
+
+-   One common form of heterokedasticity occurs when errors are proportional to the size of the observation:
+
+```{r}
+x <- rnorm(1000)
+y <- exp(x)
+ggplot(data=data.table(x=x,y=y),aes(x=x,y=y)) + geom_point() + geom_smooth(method='lm') + theme_bw()
+```
+
+## Homoskedasticity
+
+> -   For simple cases like this we can solve the issue by using log(y) instead of y, but we often have more complicated error structures
+> -   We can correct for this (asymptotically) using robust standard errors. The formula is horrifying, but it's easy to implement in software
+
+## Autocorrelation
+
+> -   Our data is autocorrelated if we can predict an observation using the previous one, ie $cor(y_i,y_{i-1})\neq0$
+> -   Time series data is often autocorrelated: if you have a stable job we can do a good job of predicting your income next year by using this year's income as a base.
+> -   This is much more problematic, but sometimes we can solve it by differencing our model. Instead of using $y_i=\beta_0+\beta_1x_i+\varepsilon_i$ use $\Delta y_i=\beta_0 + \beta_1 \Delta x_i + \varepsilon_i$
+
+## Autocorrelation
+
+> -   We can assess autocorrelation using the autocorrelation function: acf in r. It gives $cor(y_i,y_j)$ for different values of j (lags)
+> -   Autocorrelation does not affect bias, only the precision of our estimates
+
+## Clustering of errors
+
+> -   Our data can also be correlated if they're subject to common shocks. E.g. all students in one classroom have construction outside while taking an exam
+> -   Errors can be clustered in software to account for this. Again, the formula is fairly complex but simple to implement.
+
+## Assessing Goodness of Fit
+
+> -   Whether a model is a good fit, or practically signifcant, is highly context dependent. There are some measures that may be helpful
+> -   $\hat\sigma$, the standard error of the regression or root mean square error (rMSE) gives the variation around the line of best fit
+> -   Models can be compared to each other to assess predictive power, but if you just tell me the rMSE of a model I really can't say anything about whether it's a good fit
+
+## Assessing Goodness of Fit
+
+> -   $R^2$ (literally $r^2$ where r is our coefficient of correlation) gives the percent of variation in y explained by x.
+> -   $R^2$ is unitless and between 0 and 1
+> -   Hard to compare across contexts. $R^2=0.3$ might be low if comparing GDP across countries, while $R^2=0.01$ might be high if using individual data for insurance claims
+> -   In general a plot of the data is always a good idea
+
+## Highly influential observations
+
+> -   OLS regression can be highly sensitive to outliers, particularly if both the x and y values are extreme
+> -   The results are still unbiased with outliers: we often do nothing about them
+> -   You can assess how influential a point is by removing it from the data and seeing how $\hat\beta_1$ changes. The more data you have the less likely outliers are to be a major issue
+>     -   We will explore this more in problem set 2
+:::

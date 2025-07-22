@@ -1,0 +1,451 @@
+---
+title: "Lecture 7"
+format: revealjs
+chalkboard: true
+editor: visual
+smooth-scroll: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r, echo=FALSE}
+library(data.table)
+library(ggplot2)
+options(scipen=999)
+```
+
+## Administrative Miscellanea
+
+-   Grades as of Nov 18 Available on Blackboard
+-   Pset 3 fully available
+-   Homework 9 on Blackboard
+-   Quiz Wednesday
+
+## Quasiexperimental Approaches in Econometrics
+
+> -   When we run a linear regression, we only get a causal estimate when we have exogenous variation - variation that is not jointly correlated with our dependent and independent variable
+> -   Adding controls allow us to correct for most endogeneity that we observe, but if we don't have data on something we can't control for it
+> -   Randomized trials force exogenous variation: because we randomly assigned treatment, it is not related to our existing covariates
+
+## Quasiexperimental Approaches in Econometrics
+
+> -   Without a randomized trial, we can instead use some "natural experiments" - some change that impacted some individuals but not others in a way that is as good as random assignment. Examples include:
+>     -   People were drafted into the Vietnam war based in part on their day of birth, which is unrelated to future employment outcomes (Angrist 1990)
+
+## Quasiexperimental Examples
+
+> -   The tea party organized nationwide protests on April 15th, 2009. In some areas bad weather caused small turnout, leading to worse outcomes for Republican candidates in the 2010 election (Madestam et al 2013)
+> -   In 1980 Fidel Castro allowed anyone to leave Cuba, causing a mass migration of 125,000 cubans to America, most of whom settled in Florida due to proximity
+
+## Difference-In-Differences as a Quasiexperiment
+
+> -   The Mariel Boatlift experiment is an example of a difference-in-differences (DiD) design
+> -   The concept is simple: compare the outcome you're interested in (employment of natives) before and after this event
+>     -   The problem with this is that many other things could affect your outcome (e.g. recessions).
+>     -   We need to know what would have happened without the experiment (the counterfactual)
+
+## Difference-In-Differences as a Quasiexperiment
+
+> -   Take a city that was unaffected by the migration from cuba, but is otherwise similar to the affected city (in this case Miami).
+> -   The difference in employment for your counterfactual city (say, Atlanta) before and after is taken as what would have happened without intervention due to natural trends or other fluctuations
+
+## Difference-In-Differences Steps
+
+> -   Take the difference in employment before and after the boatlift (year 1980) in Miami (difference 1)
+> -   Do the same thing for Atlanta (difference 2)
+> -   Finally, take the difference between these to get your causal impact (difference in differences)
+
+## Difference-In-Differences as a Quasiexperiment
+
+> -   This can be done in a regression as $y = \beta_0 + \beta_1 post + \beta_2 treat + \beta_3 treat*post + \varepsilon$
+>     -   $\beta_3$ is our coefficient of interest
+> -   This is also equivalent to $y_{st} = \beta_0 + \beta_1 D_{st} + \lambda_s + \mu_t +\varepsilon_{st}$
+>     -   D is the indicator for the policy being in effect, and $\lambda_s,\mu_t$ are state and time fixed effects.
+>     -   This is a two-way-fixed-effects estimate
+
+## Difference-In-Differences as a Quasiexperiment
+
+> -   We only look at variation within a state and within a year.
+> -   The only variation that remains are changes that occur within a state over time that are not attributed to global trends
+>     -   i.e. only the differential trend within a state is picked up.
+> -   We're attributing the entire differential trend between the Miami and Atlanta to be the causal effect
+>     -   This is our identification assumption
+
+## Mariel Boatlift (Card 1990)
+
+![](../img/Mariel.PNG)
+
+## Mariel Boatlift (Card 1990)
+
+```{r}
+library(data.table)
+library(ggplot2)
+dt <- data.table(year=c(1979,1980,1981,1982,1983,1984,1985,
+                        1979,1980,1981,1982,1983,1984,1985,
+                        1979,1980,1981,1982,1983,1984,1985),
+                 race=c("black","black","black","black","black","black","black",
+                        "black","black","black","black","black","black","black",
+                        "cuban","cuban","cuban","cuban","cuban","cuban","cuban"),
+                 treated=c(1,1,1,1,1,1,1,
+                           0,0,0,0,0,0,0,
+                           1,1,1,1,1,1,1),
+                 unemployment=c(8.3,5.6,9.6,16.0,18.4,14.2,7.8,
+                                10.3,12.6,12.6,12.7,18.4,12.1,13.3,
+                                5.3,7.2,10.1,10.8,13.1,7.7,5.5))
+dt[,race:=as.factor(race)]
+dt[,treated:=as.factor(treated)]
+ggplot(data=dt[race=="black"],aes(x=year,y=unemployment,group=treated,color=treated)) + geom_point() + geom_line() + theme_bw()
+```
+
+## Mariel Boatlift (Card 1990)
+
+> -   Card concludes that there were no effects on natives employment or earnings. Are there issues with this?
+
+## Mariel Boatlift Issues (Card 1990)
+
+> -   
+>
+>     1)  Parallel pretrends do not seem to hold - the comparison cities might not be representative of Miami
+>
+> -   
+>
+>     2)  Selection into treatment: natives can move, attenuating the effect. This is a specific case of a "spillover effect".
+>
+>     -   Another example would be if migrants affected demand for goods produced in Atlanta, changing their employment rate
+>
+> -   
+>
+>     3)  General equilibrium response: firms can shift from capital to labor, attenuating the effect
+>
+> -   Takeaway: it can be hard to argue DiD approaches are truly capturing a causal effect
+
+## Pretrends
+
+![](../img/pretrends.png)
+
+## Pretrends
+
+> -   If treatment and control were trending differentially before the policy was implemented it is hard to argue that we have a valid control
+> -   Even if there is no differential trend ("Parallel Pretrends"), there could be another common shock that happened at the same time that ruins our assumption (SOX was enacted in 2002 following the collapse of Enron and the September 11th attacks)
+
+## Example
+
+-   Treatment occurs at the end of year 4 (first shows up in year 5)
+
+```{r}
+x <- c(1,2,3,4,7,8,9,10)
+y <- c(1,2,3,4,5,6,7,8) +3
+dt <- data.table(treated=c(rep(1,8),rep(0,8)),t=rep(1:8,2),y=c(x,y))
+dt[,treated:=as.factor(treated)]
+ggplot(data=dt,aes(x=t,y=y,group=treated,color=treated)) + geom_point() + geom_line() + theme_bw()
+print(dcast(dt, treated ~ t))
+```
+
+## Example
+
+> -   Diff-in-Diff value using 1 year: (7-4) - (8-7) = 3-1 = 2
+> -   DiD using all years: \[(7+8+9+10)/4 - (8+9+10+11)/4\] - \[(1+2+3+4)/4-(4+5+6+7)/4\] = (8.5-9.5)-(-)=-1 - (-3) = 2
+> -   OLS Using all years: 9-4=5
+> -   DiD takes out the common time trend
+
+## Example
+
+```{r,echo=TRUE}
+dt[,post:= as.numeric(t>4)]
+lm(data=dt, y ~ treated + post + treated:post)
+lm(data=dt, y ~ post)
+```
+
+## Example: Not parallel
+
+```{r}
+x <- c(1,2,3,4,7,8,9,10)
+y <- 8:1
+dt <- data.table(treated=c(rep(1,8),rep(0,8)),t=rep(1:8,2),y=c(x,y))
+dt[,treated:=as.factor(treated)]
+ggplot(data=dt,aes(x=t,y=y,group=treated,color=treated)) + geom_point() + geom_line() + theme_bw()
+print(dcast(dt, treated ~ t))
+```
+
+## Example: Not parallel
+
+-   Diff-in-Diff value using 1 year: (7-4) - (4-5) = 3-(-1) = 4
+-   Diff-in-Diff value using all years: (8.5-2.5)-(2.5-6.5)=6-(-4)=10
+-   OLS using all years: 11/2-9/2=1
+
+## Example: Not parallel
+
+```{r,echo=TRUE}
+dt[,post:= as.numeric(t>4)]
+lm(data=dt, y ~ treated + post + treated:post)
+lm(data=dt, y ~ post)
+```
+
+## Dynamic Treatment Effects
+
+> -   In the prior example the effect was different depending on whether we used 1 year or multiple years. This is a common problem in DiD methods where the treatment effect differs over time
+> -   There is a similar issue where treatment is staggered: e.g. you have a policy that rolls out in multiple different states in different years. When this happens your early-treated states act as a counterfactual for your late-treated states
+> -   These are complex issues that have several solutions, but is not yet settled as to which approach is best
+
+## Event Studies: a DiD Variant
+
+> -   We may have different states adopt the same policy but in different years.
+> -   Recall that one issue with DiD is that it assumes that the only change to occur is the policy, rather than something else that happened at the same time
+>     -   e.g. cannabis was legalized in Illinois in the same year as covid, so it's hard to disambiguate the effect
+> -   Staggered rollouts help mitigate this concern since we now have some variation over time.
+> -   How do we actually implement the model?
+
+## Event Studies: a DiD Variant
+
+> -   Set t=0 as the year of implementation of the state, t=-1 as the year before, t=+1 as the year after, etc.
+> -   This aligns every state on the same axis
+> -   $y_{st} = \beta_0 + \sum\gamma_t T_t + \lambda_t + \mu_s + \varepsilon_{st}$. Where $T_t$ is constructed as above
+>     -   This gives us an effect for each year before and after the policy, which is averaged over every state that implemented
+>     -   What should $\gamma_{-1}$ be?
+
+## Event Studies: a DiD Variant
+
+> -   $y_{st} = \beta_0 + \sum\gamma_t T_t + \lambda_t + \mu_s + \varepsilon_{st}$
+>     -   What should $\gamma_{-1}$ be?
+>     -   Every year before the policy should have a coefficient of 0. If they don't this is a violation of parallel pretrends
+
+## Staggered Rollout Issues
+
+> -   Note that, e.g. $\gamma_0$ for the effect in the first year may be the average of Colorado in 2012, California in 2016, and Illinois in 2020
+> -   $\gamma_4$, on the other hand, will include Colorado and California, but not Illinois since we don't have data yet
+>     -   This can cause wonky effects. See Goodman-Bacon (2021)
+> -   Note also that In 2012 California acts as a counterfactual for Colorado, but in 2020 California does not act as a counterfactual for Illinois
+>     -   Very weird effects if states change treatment status
+
+## Regression discontinuity: motivation
+
+> -   Does attending college increase future earnings, and by how much?
+> -   People who attend college have drastically different characteristics that also impact earnings. We can control for some of these, but many are unobservable
+> -   Consider a low-ranking college (Florida International University) that denies applicants below a certain GPA threshold. Low performing high school students will be denied entry, but high scoring students are accepted. Assume for now that everyone above the cutoff is admitted, and no one below is.
+
+## Regression Discontinuity: Motivation
+
+-   Our admissions graph will look like this
+
+```{r}
+library(data.table)
+library(ggplot2)
+dt <- data.table(score=1:100,admitted=as.integer((1:100)>=50))
+ggplot(data=dt,aes(x=score,y=admitted)) + geom_point() + theme_bw()
+```
+
+## Regression Discontinuity: Motivation
+
+-   Suppose we see that future earnings look like this. What can we infer?
+
+```{r}
+score <- 1:100
+earnings <- 5000 + 100*score + 2500*(score>50)
+dt <- data.table(score,earnings)
+ggplot(data=dt,aes(x=score,y=earnings)) + geom_point() + theme_bw()
+```
+
+## Regression Discontinuity: Motivation
+
+> -   Score and future income are strongly correlated (perfectly linear), but we see a jump at a score of 50 - exactly when students are accepted to college.
+> -   We can make the inference that this is the causal impact of attending college on future earnings
+
+## Regression Discontinuity: Motivation
+
+> -   We identified the causal effect using the graph before. How do we use a regression equation to solve this?
+> -   Note that there's a linear function of score (We call our independent variable the "running variable" in RD designs) that needs to be modeled, and also a discontinuity, or jump:
+> -   $y_i=\beta_0 + \beta_1 (x_i-50) + \beta_2 (x_i>50)$
+> -   $x_i-50$ is the distance from the cutoff point of 50
+> -   $x_i>50$ is a dummy variable equal to 1 if we are above the cutoff
+> -   What is our coefficient of interest?
+
+## Regression Discontinuity: Motivation
+
+> -   $\beta_2$, since this is the jump that we see
+
+## Regression discontinuity: Identifying Assumptions
+
+> -   No fine manipulation of our running variable (e.g. students can't take the ACT until they get a score above the cutoff)
+> -   No other discontinuities at the cutoff that would affect our outcome (e.g. people just above the cutoff are wealthier than those just below)
+
+## RD Modifications
+
+> -   There may be different slopes before and after the cutoff. How do we handle this?
+> -   Just interact the running variable with the cutoff indicator:
+>     -   $y_i = \beta_0 + \beta_1 (x_i-c) + \beta_2 (x_i\ge c) + \beta_3(x_i\ge c)(x_i-c)$
+> -   Our coefficient of interest is still the jump: $\beta_2$
+> -   In practice this is the only modification that is required, but more are available
+
+## RD Modifications: Nonlinearities vs Cutoff Window
+
+> -   Choosing a narrow cutoff window (e.g. GPA from 1.9 to 2.1 instead of 0.0 to 4.0) is much cleaner, but gives less data
+> -   Nonlinear functions can also be chosen (polynomials), but can lead to unstable estimates
+
+## How to test that RD is appropriate
+
+> -   Histogram test: histogram of running variable should be smooth around the cutoff (a jump implies selection into treatment)
+> -   Replace y in our RD regression with some covariate (like family income). These should give $\hat\beta_3\approx0$
+> -   Permutation test: use a cutoff other than $x=c$. You should obtain a null result
+
+## What does RD measure?
+
+> -   RD measure a causal effect, but it's specifically the causal effect for individuals near the cutoff
+> -   This is called a local average treatment effect (LATE)
+
+## Example: Graph
+
+> -   Employees are rated on a 1-4 scale (Does not Meet Expectations-Exceeds Expectations) which are weighted across categories. Early career actuaries are promoted when they have a score of 3.5 or higher. You wish to study the effect of promotion on productivity and obtain the following graph. What is your estimated effect of promotion on productivity?
+
+## Example: Graph
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(scales)
+set.seed(1)
+score <- seq(from=0,to=4,by=0.1)
+productivity <- score*15 + (score>=3.5)*10-2.5 + rnorm(length(score),sd=0.5)
+dt <- data.table(score,productivity,promoted=score>=3.5)
+
+ggplot(data=dt,aes(x=score,y=productivity)) + geom_point() + theme_bw() + scale_y_continuous(breaks=pretty_breaks(10),minor_breaks = pretty_breaks(20)) + geom_smooth(method="lm",aes(group=promoted),color='black')
+```
+
+## Example: Graph
+
+> -   Why might this be invalid? How might we check for this?
+
+## Graph Answer
+
+> -   This jumps by 10, so this is our causal impact
+>     -   (we have to extend out our regression line slightly - we jump from 50 to 60).
+> -   There are a lot of reasons this might be invalid
+>     -   If scores were subjective and if people were put directly at a score of 3.5 based on non-performance reasons (e.g. they just interviewed at Google).
+>     -   You could test if there are jumps in other variables by replacing y, or you could check the density of the score histogram around the 3.5 cutoff.
+
+## Example: Table
+
+-   Suppose we have a policy kick in at x=5. From the table below, what is the causal impact of this policy for people near the cutoff?
+
+```{r}
+x <- c(1,2,3,4,5,6,7,8)
+y <- c(5,7,9,11,15,21,27,33)
+dt <- data.table(x,y)
+dt
+```
+
+## Table Answer
+
+> -   On the left hand side this grows by 2 each time, yielding a predicted y=13 when x=5. On the right hand side our estimate grows by 6 each time, and in this case we predict that y=15 when x=5. Comparing the left hand estimate of 13 with the right hand estimate of 15, we get a causal impact of 2.
+
+## Table Answer
+
+```{r}
+ggplot(data=dt,aes(x=x,y=y,group=x>=5)) + geom_point() + theme_bw() + geom_smooth(method="lm")
+```
+
+## Table Answer
+
+> -   Note that you could probably reasonably draw a smooth curve that fits these points, in which case RD would not be valid. The sigmoid plot below is a common function shape that becomes very sharp at the inflection point despite being perfectly smooth (it's infinitely differentiable)
+
+## Table Answer
+
+```{r}
+x <- seq(from=-5,to=5,by=0.01)
+dt <- data.table(x=x,y=1/(1+exp(-5*x)))
+ggplot(data=dt,aes(x=x,y=y)) + geom_point() + geom_line() + theme_bw()
+```
+
+## Example: Setup
+
+-   You have the table from the previous question and wish to find the causal impact using a regression equation. What regression do you run and which coefficient(s) are your causal impact? (the cutoff is at x\>=5)
+
+```{r}
+x <- c(1,2,3,4,5,6,7,8)
+y <- c(5,7,9,11,15,21,27,33)
+dt <- data.table(x,y)
+dt
+```
+
+## Setup Answer
+
+-   We need to first standardize the running variable so that the cutoff is at 0 by subtracting 5, then we run $y = \beta_0 + \beta_1 s + \beta_2 (s\ge0) + \beta_3 s * (s\ge0)$
+
+```{r}
+dt[,run := x-5]
+dt[,ind:=run>=0]
+lm(data=dt, y ~ run + ind + run*ind)
+```
+
+## Example: Design
+
+> -   Suppose in 2020 India changed it's corporate tax rate, but only for large companies (say, for firms with revenue above 1 billion dollars). You are interested in the effect of this tax change on capital expenditures. You decide to run a difference-in-difference design, but someone points out that you can also run a RD design off of this.
+> -   Your difference in difference is $capex = \beta_0 + \beta_1 large + \beta_2 post + \beta_3 large*post$
+> -   Your RD design is $capex = \beta_0 + \beta_1 * (size-1) + \beta_2 * large + \beta_3 * (size-1)*large$
+
+> -   You think you should arrive at the same answer, but your results differ. Why?
+
+## Example: Design
+
+-   A DID may be biased if large and small companies have differential trends in their capital expenditures
+-   B RD may be biased if firms manipulate their revenue to avoid the tax
+-   C DID captures an average treatment effect, while RD captures an average treatment effect for firms with a billion dollars in revenue
+-   D DID may be biased if small and large companies have different levels of capital expenditures
+-   E RD may be biased if larger firms tend to have higher levels of capital expenditures
+
+## Design Answers
+
+-   A, B, and C are correct. DiD requires parallel pretrends, RD requires a lack of manipulation of the running variable, and in general RD measures a local average treatment effect of the individual near the cutoff.
+-   Level differences do not bias DiD, and omitted variables in RD only matter to the extent that they jump discontinuously
+
+## Assumption 1 Violation
+
+> Suppose people with a score of 51 or higher get promoted and and you obtain the following distribution of scores in a company. Is an RD design valid?
+
+-   A Yes, as long as you find a discontinuity in your outcome variable
+-   B No, because people with high scores tend to have difference characteristics on average
+-   C Yes, since there is a jump in probability of attaining the cutoff score
+-   D No, the running variable is being maniuplated
+
+## Assumption 1 Violation
+
+```{r}
+x <- seq(from=-3,to=3,by=.1)
+p <- dnorm(x)
+p[45:50] <- p[45:50]-.1
+p[51] <- p[51] + .2
+plot(p)
+```
+
+## Assumption 1 answer
+
+> -   D - this is a sign that the running variable was manipulation (it's not smooth at the cutoff - histogram test)
+
+## Assumption 2 violation
+
+-   You are interested in the effect of promotion on salary, and in this setting people with a score above 50 are promoted. You know that you can study multiple outcomes with the same RD setup, so you decide to study the effect of promotion on future salary as well as parent's salary. You obtain the following results. What does this imply?
+
+-   A Promotion causes both own and parents income to rise
+
+-   B Promotion causes income to rise, but parents income is probably biased and cannot be inferred to be causal
+
+-   C The result on parents income invalidates the entire design
+
+-   D Nothing can be said about the results
+
+## Assumption 2 violation
+
+```{r}
+x <- 1:100
+y <- 1:100 + (x>50) * 10
+z <- 1:100 + (x>50) * 5
+dt <- data.table(score=x,salary=y,parent_salary=z)
+ggplot(data=dt,aes(x=score,y=salary)) + geom_point() + theme_bw()
+ggplot(data=dt,aes(x=score,y=parent_salary)) + geom_point() + theme_bw()
+```
+
+## Assumption 2 Answer
+
+-   C - this is a strong sign of an omitted variable

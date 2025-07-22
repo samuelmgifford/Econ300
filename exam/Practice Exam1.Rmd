@@ -1,0 +1,257 @@
+---
+title: "Econ 300 Section 42841 Exam I"
+author: "University of Illinois at Chicago"
+date: '2023-09-27'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+Name: _________________________________________________
+
+## Instructions
+
+Please read the following before starting the exam:
+
+1. The exam is worth 100 points and consists of 6 multiple choice questions and 2 free response questions. Point values are included next to questions - please allocate your time appropriately
+2. Please show all your work for full credit.
+3. You may not communicate with classmates or other people about the exam.
+4. Laptops, phones, and other electronics devices are not allowed during the exam
+5. You may consult a single sheet of notes for the exam
+6. A list of formulas is provided, not all of them will be relevant
+7. The exam is due at the end of class. No exams will be accepted after this time.
+
+## Formulas / Notation
+
+* $\beta_0,\beta_1,\varepsilon$ will refer to the intercept, slope, and error of a regression, respectively
+* $E[x]=\frac{1}{n}\sum_i x_i$
+* $var(x)=E[(x-\mu)^2]$
+* $cov(x,y)=E[(x-E[X])(y-E[y])$
+* $\rho_{xy} = \frac{cov(x,y)}{\sigma_x\sigma_y}$
+* $\hat\sigma^2=\sum_i(y_i-\hat y_i)^2$
+* $\hat\beta_1=cor(x,y)\frac{\sigma_y}{\sigma_x}$
+* $E[\hat\beta_1]=\beta_1 + cor(x,\varepsilon)\frac{\sigma_\epsilon}{\sigma_x}$
+* $var(\hat\beta)=\frac{\hat\sigma^2}{n\sigma^2_x}$
+
+\newpage
+
+## Question 1 (5 points)
+
+You start with the following distribution
+
+```{r, out.width="50%",fig.align='center'}
+library(data.table)
+library(ggplot2)
+m <- 0
+sd <- 1
+x <- seq(from=-5,to=5,length.out=100)
+p <- dnorm(x,m,sd)
+dt <- data.table(x=x,p=p)
+ggplot(data=dt,aes(x=x,y=p)) + geom_line() + theme_bw() + scale_x_continuous(limits=c(-5,5)) +scale_y_continuous(limits=c(0,1.2)) 
+```
+
+Which of the following distributions has a standard deviation 3 times as large as the first (note that the axes are all the same)?
+
+```{r,out.width="100%"}
+library(gridExtra)
+x <- seq(from=-5,to=5,length.out=100)
+y <- dnorm(x,-2,1)
+dt <- data.table(x=x,p=y)
+plot1 <- ggplot(data=dt,aes(x=x,y=p)) + geom_line() + theme_bw() + scale_x_continuous(limits=c(-5,5)) + scale_y_continuous(limits=c(0,1.2)) +ggtitle("A")
+y <- dnorm(x,2,1)
+dt <- data.table(x=x,p=y)
+plot2 <- ggplot(data=dt,aes(x=x,y=p)) + geom_line() + theme_bw()+ scale_x_continuous(limits=c(-5,5))+ scale_y_continuous(limits=c(0,1.2)) +ggtitle("B")
+y <- dnorm(x,0,3)
+dt <- data.table(x=x,p=y)
+plot3 <- ggplot(data=dt,aes(x=x,y=p)) + geom_line() + theme_bw()+ scale_x_continuous(limits=c(-5,5))+ scale_y_continuous(limits=c(0,1.2)) +ggtitle("C")
+y <- dnorm(x,0,0.33)
+dt <- data.table(x=x,p=y)
+plot4 <- ggplot(data=dt,aes(x=x,y=p)) + geom_line() + theme_bw()+ scale_x_continuous(limits=c(-5,5))+ scale_y_continuous(limits=c(0,1.2)) +ggtitle("D")
+grid.arrange(plot1, plot2,plot3,plot4,ncol=2)
+```
+
+\newpage
+
+## Question 2 (5 points)
+
+For which of the following plots is cor(x,y) the most positive
+
+```{r}
+set.seed(4)
+f <- function(p) {
+  dt <- as.data.table(MASS::mvrnorm(n=100,c(0,0),matrix(c(1,p,p,1),2,2),empirical=TRUE))
+  names(dt) <- c("x","y")
+  dt
+}
+plot1 <- ggplot(data=f(0),aes(x=x,y=y)) + geom_point() + theme_bw() + scale_x_continuous(limits=c(-2,2)) + ggtitle("A")
+plot2 <- ggplot(data=f(-.95),aes(x=x,y=y)) + geom_point() + theme_bw() + scale_x_continuous(limits=c(-2,2)) + ggtitle("B")
+plot3 <- ggplot(data=f(.75),aes(x=x,y=y)) + geom_point() + theme_bw() + scale_x_continuous(limits=c(-2,2)) + ggtitle("C")
+plot4 <- ggplot(data=f(.4),aes(x=x,y=y)) + geom_point() + theme_bw() + scale_x_continuous(limits=c(-2,2)) + ggtitle("D")
+grid.arrange(plot1, plot2,plot3,plot4,ncol=2)
+```
+
+## Question 3 (5 points)
+
+The central limit theorem states that
+
+* A Large populations tend to be normally distributed
+* B As your sample size grows large, your estimate of the sample mean becomes unbiased
+* C As your sample size grows large, the variance of your sample mean approaches zero
+* D As your sample size grows large and you have independent and identically distributed samples from a finite variance distribution, your sample mean approaches a normal distribution
+
+## Question 4 (5 points)
+
+You run a regression of y on x and find that $R^2=0.64$. Which of the following is true:
+
+* A Since $R^2$ is high we know our estimate of $\hat\beta_1$ is probably unbiased
+* B Since $R^2$ is low we know our estimate of $\hat\beta_1$ is probably biased
+* C 64\% of the variation in y is explained by x
+* D Since $R^2$ is positive we know that as x increases y also tends to increase
+
+## Question 5 (5 points)
+
+The true relationship between x and y is given by $y_i=\beta_0+\beta_1 x_i + \varepsilon_i$. We estimate $\hat\beta_1$. What does it mean for $\hat\beta_1$ to be biased?
+
+* A $\hat\beta_1$ is biased whenever there are large error terms in the model
+* B $\hat\beta_1$ is biased whenever $\hat\beta_1\neq\beta_1$
+* C $\hat\beta_1$ is biased whenever $E[\hat\beta_1]\neq\beta_1$
+* D $\hat\beta_1$ is not biased under OLS regression
+
+## Question 6 (5 points)
+
+When will the OLS regression given by $y_i=\beta_0+\beta_1x_i+\varepsilon_i$ be biased?
+
+* A When $cor(x,y)\neq 0$ 
+* B When $cor(x,\varepsilon)\neq 0$
+* C When $cor(y,\varepsilon)\neq 0$
+* D OLS regression is not biased
+
+## Question 7 (35 points, 5 points per part)
+
+You are estimating the effect of caffeine consumption (measured in mg) on the length of students' answers to a free response exam question (measured in words). You obtain information about students caffeine consumption immediately prior to the 8:00 AM exam via a survey question at the end of the exam. You use the regression equation $words_i = \beta_0 + \beta_1 caffeine_i + \varepsilon_i$, which you plot below along with the line of best fit, which has $\hat\beta_0=30,\hat\beta_1=0.5$
+
+```{r,echo=FALSE, out.width="50%"}
+set.seed(1)
+library(ggplot2)
+library(data.table)
+n <- 30
+caffeine <- rlnorm(n,4,0.75)
+words <- 30 + .5 * caffeine + rnorm(n,sd=25)
+dt <- data.table(caffeine,words)
+ggplot(data=dt,aes(x=caffeine,y=words)) + geom_point() + theme_bw() + geom_smooth(method="lm",fill=rgb(1,1,1,0),color='black')
+```
+
+* A What is the dependent variable in this regression? \
+\
+\
+\
+
+
+* B What is the predicted essay length for a student who took a Vivarin pill containing 200mg of caffeine prior to class? \
+\
+\
+\
+
+
+
+* C Timmy consumes 200mg of caffeine and proceeds to hand in his exam after 15 minutes, having written 10 words in total. Calculate $\hat\varepsilon$ for this observation \
+\
+\
+\
+
+
+
+* D You decide to swap your mountain dew (55mg of caffeine) for a red bull (80mg of caffeine). How many additional words are you expected to write on your essay? \
+\
+\
+\
+
+
+
+* E What can be said about the correlation between caffeine and essay length (is it positive, negative, or zero)? \
+\
+\
+\
+
+
+
+* F Do you expect your estimate of $\hat\beta_1$ in this regression to be biased? Why or why not?\
+\
+\
+\
+\
+\
+
+
+* G You wish to test whether your error term is correlated with caffeine consumption, so you calculate $cor(caffeine,\hat\varepsilon)$ using the residuals. Is this a good idea? Why or why not? \
+\
+\
+\
+\
+\
+
+
+
+
+## Question 8 (35 points)
+
+You are estimating the effect of receiving paid time off (PTO, measured in days of work) on number of hours worked per year. You use data from several large companies in Chicago, and measure each employee's total amount of PTO and number of hours worked over a 5 year period
+
+* A Write the regression equation / estimating equation / core model (5 points) \
+\
+\
+\
+
+\newpage
+
+* B Suppose you obtain an estimate of $\hat\beta_0=1800,\hat\beta_1=10$. Interpret $\hat\beta_0$ and $\hat\beta_1$ within the context of this research question (10 points) \
+\
+\
+\
+\
+\
+
+
+
+
+* C List two factors that are included in the error term and explain why they're in the error term (10 points)\
+\
+\
+\
+\
+\
+
+
+
+
+* D Suppose that full-time salaried employees are more likely to be given PTO as part of their compensation package. Will this bias the estimate of $\hat\beta_1$? Why or why not? (10 points)\
+\
+\
+\
+\
+\
+
+
+
+## Extra Credit (11 points)
+
+* For question 8, it is reasonable that being awarded paid time off will have a heterogeneous response based on employee type, e.g. highly compensated employees or employees subject to overtime pay may not reduce their labor supply in response to PTO while other workers may reduce their supply. Explain how $\beta_1$ accounts for this information and whether $\hat\beta_1$ is biased as a result of this (5 points) \
+\
+\
+\
+\
+
+
+* The Gauss-Markov theorem states that OLS regression gives the best linear unbiased estimate of $\beta_1$. Explain what defines the best estimate of $\beta_1$, and list at least 1 assumption required for Gauss-Markov to hold (5 points)
+
+\
+\
+\
+\
+\
+
+
+* How much caffeine, in mg, did you consume prior to this exam (1 point)
